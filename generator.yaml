@@ -1,0 +1,17 @@
+ignore:
+  resource_names:
+      - ApiKey
+      - Authorizer
+      - BasePathMapping
+      - Deployment
+      - DocumentationPart
+      - DocumentationVersion
+      - DomainName
+      - Model
+      - RequestValidator
+      - Resource
+      - RestApi
+      - Stage
+      - UsagePlan
+      - UsagePlanKey
+      - VpcLink
