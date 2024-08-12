@@ -13,7 +13,9 @@ description: |-
   **About Amazon API Gateway**
 
 
-  {ADD YOUR DESCRIPTION HERE}
+  Amazon API Gateway is an AWS service for creating, publishing, maintaining, monitoring, and securing REST, HTTP, and WebSocket APIs at any scale.
+  API developers can create APIs that access AWS or other web services, as well as data stored in the AWS Cloud. As an API Gateway API developer, 
+  you can create APIs for use in your own client applications. Or you can make your APIs available to third-party app developers.
 
 
   **About the AWS Controllers for Kubernetes**
@@ -28,13 +30,19 @@ description: |-
 
   Please follow the following link: [Red Hat OpenShift](https://aws-controllers-k8s.github.io/community/docs/user-docs/openshift/)
 samples:
-- kind: ExampleCustomKind
+- kind: RestAPI
   spec: '{}'
-- kind: SecondExampleCustomKind
+- kind: Resource
+  spec: '{}'
+- kind: Stage
+  spec: '{}'
+- kind: Integration
+  spec: '{}'
+- kind: VPCLink
   spec: '{}'
 maintainers:
 - name: "apigateway maintainer team"
   email: "ack-maintainers@amazon.com"
 links:
 - name: Amazon API Gateway Developer Resources
-  url: https://aws.amazon.com/API Gateway/developer-resources/
+  url: https://aws.amazon.com/api-gateway/resources/
