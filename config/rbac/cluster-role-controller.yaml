@@ -31,6 +31,40 @@ rules:
   - patch
   - watch
 - apiGroups:
+  - apigateway.services.k8s.aws
+  resources:
+  - restapis
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apigateway.services.k8s.aws
+  resources:
+  - restapis/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ec2.services.k8s.aws
+  resources:
+  - vpcendpoints
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - ec2.services.k8s.aws
+  resources:
+  - vpcendpoints/status
+  verbs:
+  - get
+  - list
+- apiGroups:
   - services.k8s.aws
   resources:
   - adoptedresources

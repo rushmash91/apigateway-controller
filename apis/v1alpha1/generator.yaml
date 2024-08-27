@@ -1,17 +1,57 @@
 ignore:
   resource_names:
-      - ApiKey
-      - Authorizer
-      - BasePathMapping
-      - Deployment
-      - DocumentationPart
-      - DocumentationVersion
-      - DomainName
-      - Model
-      - RequestValidator
-      - Resource
-      - RestApi
-      - Stage
-      - UsagePlan
-      - UsagePlanKey
-      - VpcLink
+    - ApiKey
+    - Authorizer
+    - BasePathMapping
+    - Deployment
+    - DocumentationPart
+    - DocumentationVersion
+    - DomainName
+    - Model
+    - RequestValidator
+    - Resource
+#    - RestApi
+    - Stage
+    - UsagePlan
+    - UsagePlanKey
+    - VpcLink
+resources:
+  # A PutRestApi call exists that allows updating an existing API with an input of external API definitions. Support for
+  # this will be added based on customer interest.
+  RestApi:
+    fields:
+      ID:
+        is_primary_key: true
+      EndpointConfiguration.VPCEndpointIDs:
+        references:
+          resource: VPCEndpoint
+          service_name: ec2
+          path: Status.VPCEndpointID
+      CloneFrom:
+        is_immutable: true
+      Version:
+        is_immutable: true
+    renames:
+      operations:
+        GetRestApi:
+          input_fields:
+            RestApiId: Id
+        UpdateRestApi:
+          input_fields:
+            RestApiId: Id
+        DeleteRestApi:
+          input_fields:
+            RestApiId: Id
+    hooks:
+      sdk_update_pre_build_request:
+        template_path: hooks/rest_api/sdk_update_pre_build_request.go.tpl
+      sdk_update_post_build_request:
+        template_path: hooks/rest_api/sdk_update_post_build_request.go.tpl
+      delta_pre_compare:
+        code: customPreCompare(a, b)
+    exceptions:
+      terminal_codes:
+        - BadRequestException
+        - ConflictException
+        - NotFoundException
+        - InvalidParameter
