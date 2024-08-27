@@ -3,3 +3,4 @@ kind: Kustomization
 resources:
   - common
   - bases/apigateway.services.k8s.aws_restapis.yaml
+  - bases/apigateway.services.k8s.aws_vpclinks.yaml

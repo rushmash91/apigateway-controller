@@ -14,8 +14,37 @@ ignore:
     - Stage
     - UsagePlan
     - UsagePlanKey
-    - VpcLink
+#    - VpcLink
 resources:
+  VpcLink:
+    fields:
+      ID:
+        is_primary_key: true
+      TargetARNs:
+        is_immutable: true
+    hooks:
+      sdk_update_pre_build_request:
+        template_path: hooks/vpc_link/sdk_update_pre_build_request.go.tpl
+      sdk_update_post_build_request:
+        template_path: hooks/vpc_link/sdk_update_post_build_request.go.tpl
+      sdk_delete_pre_build_request:
+        template_path: hooks/vpc_link/sdk_delete_pre_build_request.go.tpl
+    renames:
+      operations:
+        GetVpcLink:
+          input_fields:
+            VpcLinkId: Id
+        UpdateVpcLink:
+          input_fields:
+            VpcLinkId: Id
+        DeleteVpcLink:
+          input_fields:
+            VpcLinkId: Id
+    synced:
+      when:
+        - path: Status.Status
+          in:
+            - AVAILABLE
   # A PutRestApi call exists that allows updating an existing API with an input of external API definitions. Support for
   # this will be added based on customer interest.
   RestApi:

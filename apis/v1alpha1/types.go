@@ -153,3 +153,15 @@ type StageKey struct {
 type TLSConfig struct {
 	InsecureSkipVerification *bool `json:"insecureSkipVerification,omitempty"`
 }
+
+// An API Gateway VPC link for a RestApi to access resources in an Amazon Virtual
+// Private Cloud (VPC).
+type UpdateVPCLinkOutput struct {
+	Description   *string            `json:"description,omitempty"`
+	ID            *string            `json:"id,omitempty"`
+	Name          *string            `json:"name,omitempty"`
+	Status        *string            `json:"status,omitempty"`
+	StatusMessage *string            `json:"statusMessage,omitempty"`
+	Tags          map[string]*string `json:"tags,omitempty"`
+	TargetARNs    []*string          `json:"targetARNs,omitempty"`
+}
