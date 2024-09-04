@@ -1,8 +1,8 @@
 service:
-  full_name:
-  short_name:
-  link:
-  documentation:
+  full_name: Amazon API Gateway
+  short_name: apigateway
+  link: https://aws.amazon.com/api-gateway/
+  documentation: https://docs.aws.amazon.com/apigateway/
 api_versions:
   - api_version: v1alpha1
     status: available
