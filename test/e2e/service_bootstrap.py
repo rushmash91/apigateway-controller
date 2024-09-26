@@ -18,12 +18,14 @@ from acktest.bootstrapping import Resources, BootstrapFailureException
 
 from e2e import bootstrap_directory
 from e2e.bootstrap_resources import BootstrapResources
+from acktest.bootstrapping.elbv2 import NetworkLoadBalancer
+
 
 def service_bootstrap() -> Resources:
     logging.getLogger().setLevel(logging.INFO)
 
     resources = BootstrapResources(
-        # TODO: Add bootstrapping when you have defined the resources
+        NetworkLoadBalancer=NetworkLoadBalancer(name_prefix='vpc-link-test', scheme='internal')
     )
 
     try:

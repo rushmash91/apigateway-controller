@@ -18,10 +18,12 @@ for them.
 from dataclasses import dataclass
 from acktest.bootstrapping import Resources
 from e2e import bootstrap_directory
+from acktest.bootstrapping.elbv2 import NetworkLoadBalancer
+
 
 @dataclass
 class BootstrapResources(Resources):
-    pass
+    NetworkLoadBalancer: NetworkLoadBalancer
 
 _bootstrap_resources = None
 

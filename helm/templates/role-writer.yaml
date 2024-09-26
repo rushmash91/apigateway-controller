@@ -10,6 +10,7 @@ rules:
   - apigateway.services.k8s.aws
   resources:
   - restapis
+  - vpclinks
   verbs:
   - create
   - delete
@@ -22,6 +23,7 @@ rules:
   - apigateway.services.k8s.aws
   resources:
   - restapis
+  - vpclinks
   verbs:
   - get
   - patch

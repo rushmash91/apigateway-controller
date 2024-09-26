@@ -51,6 +51,26 @@ rules:
   - patch
   - update
 - apiGroups:
+  - apigateway.services.k8s.aws
+  resources:
+  - vpclinks
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apigateway.services.k8s.aws
+  resources:
+  - vpclinks/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
   - ec2.services.k8s.aws
   resources:
   - vpcendpoints
