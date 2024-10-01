@@ -140,6 +140,26 @@ rules:
 - apiGroups:
   - apigateway.services.k8s.aws
   resources:
+  - stages
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apigateway.services.k8s.aws
+  resources:
+  - stages/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - apigateway.services.k8s.aws
+  resources:
   - vpclinks
   verbs:
   - create

@@ -12,6 +12,7 @@ rules:
   - integrations
   - resources
   - restapis
+  - stages
   - vpclinks
   verbs:
   - create
@@ -27,6 +28,7 @@ rules:
   - integrations
   - resources
   - restapis
+  - stages
   - vpclinks
   verbs:
   - get

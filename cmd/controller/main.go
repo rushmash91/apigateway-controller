@@ -43,6 +43,7 @@ import (
 	_ "github.com/aws-controllers-k8s/apigateway-controller/pkg/resource/integration"
 	_ "github.com/aws-controllers-k8s/apigateway-controller/pkg/resource/resource"
 	_ "github.com/aws-controllers-k8s/apigateway-controller/pkg/resource/rest_api"
+	_ "github.com/aws-controllers-k8s/apigateway-controller/pkg/resource/stage"
 	_ "github.com/aws-controllers-k8s/apigateway-controller/pkg/resource/vpc_link"
 
 	"github.com/aws-controllers-k8s/apigateway-controller/pkg/version"

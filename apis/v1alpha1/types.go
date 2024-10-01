@@ -44,12 +44,14 @@ type AccessLogSettings struct {
 // Configuration settings of a canary deployment.
 type CanarySettings struct {
 	DeploymentID           *string            `json:"deploymentID,omitempty"`
+	PercentTraffic         *float64           `json:"percentTraffic,omitempty"`
 	StageVariableOverrides map[string]*string `json:"stageVariableOverrides,omitempty"`
 	UseStageCache          *bool              `json:"useStageCache,omitempty"`
 }
 
 // The input configuration for a canary deployment.
 type DeploymentCanarySettings struct {
+	PercentTraffic         *float64           `json:"percentTraffic,omitempty"`
 	StageVariableOverrides map[string]*string `json:"stageVariableOverrides,omitempty"`
 	UseStageCache          *bool              `json:"useStageCache,omitempty"`
 }
@@ -84,14 +86,16 @@ type IntegrationResponse struct {
 
 // Specifies the method setting properties.
 type MethodSetting struct {
-	CacheDataEncrypted                  *bool   `json:"cacheDataEncrypted,omitempty"`
-	CacheTTLInSeconds                   *int64  `json:"cacheTTLInSeconds,omitempty"`
-	CachingEnabled                      *bool   `json:"cachingEnabled,omitempty"`
-	DataTraceEnabled                    *bool   `json:"dataTraceEnabled,omitempty"`
-	LoggingLevel                        *string `json:"loggingLevel,omitempty"`
-	MetricsEnabled                      *bool   `json:"metricsEnabled,omitempty"`
-	RequireAuthorizationForCacheControl *bool   `json:"requireAuthorizationForCacheControl,omitempty"`
-	ThrottlingBurstLimit                *int64  `json:"throttlingBurstLimit,omitempty"`
+	CacheDataEncrypted                     *bool    `json:"cacheDataEncrypted,omitempty"`
+	CacheTTLInSeconds                      *int64   `json:"cacheTTLInSeconds,omitempty"`
+	CachingEnabled                         *bool    `json:"cachingEnabled,omitempty"`
+	DataTraceEnabled                       *bool    `json:"dataTraceEnabled,omitempty"`
+	LoggingLevel                           *string  `json:"loggingLevel,omitempty"`
+	MetricsEnabled                         *bool    `json:"metricsEnabled,omitempty"`
+	RequireAuthorizationForCacheControl    *bool    `json:"requireAuthorizationForCacheControl,omitempty"`
+	ThrottlingBurstLimit                   *int64   `json:"throttlingBurstLimit,omitempty"`
+	ThrottlingRateLimit                    *float64 `json:"throttlingRateLimit,omitempty"`
+	UnauthorizedCacheControlHeaderStrategy *string  `json:"unauthorizedCacheControlHeaderStrategy,omitempty"`
 }
 
 // Represents a summary of a Method resource, given a particular date and time.
@@ -177,6 +181,33 @@ type StageKey struct {
 	StageName *string `json:"stageName,omitempty"`
 }
 
+// Represents a unique identifier for a version of a deployed RestApi that is
+// callable by users.
+type Stage_SDK struct {
+	// Access log settings, including the access log format and access log destination
+	// ARN.
+	AccessLogSettings   *AccessLogSettings `json:"accessLogSettings,omitempty"`
+	CacheClusterEnabled *bool              `json:"cacheClusterEnabled,omitempty"`
+	// Returns the size of the CacheCluster.
+	CacheClusterSize *string `json:"cacheClusterSize,omitempty"`
+	// Returns the status of the CacheCluster.
+	CacheClusterStatus *string `json:"cacheClusterStatus,omitempty"`
+	// Configuration settings of a canary deployment.
+	CanarySettings       *CanarySettings           `json:"canarySettings,omitempty"`
+	ClientCertificateID  *string                   `json:"clientCertificateID,omitempty"`
+	CreatedDate          *metav1.Time              `json:"createdDate,omitempty"`
+	DeploymentID         *string                   `json:"deploymentID,omitempty"`
+	Description          *string                   `json:"description,omitempty"`
+	DocumentationVersion *string                   `json:"documentationVersion,omitempty"`
+	LastUpdatedDate      *metav1.Time              `json:"lastUpdatedDate,omitempty"`
+	MethodSettings       map[string]*MethodSetting `json:"methodSettings,omitempty"`
+	StageName            *string                   `json:"stageName,omitempty"`
+	Tags                 map[string]*string        `json:"tags,omitempty"`
+	TracingEnabled       *bool                     `json:"tracingEnabled,omitempty"`
+	Variables            map[string]*string        `json:"variables,omitempty"`
+	WebACLARN            *string                   `json:"webACLARN,omitempty"`
+}
+
 // Specifies the TLS configuration for an integration.
 type TLSConfig struct {
 	InsecureSkipVerification *bool `json:"insecureSkipVerification,omitempty"`
@@ -184,7 +215,8 @@ type TLSConfig struct {
 
 // The API request rate limits.
 type ThrottleSettings struct {
-	BurstLimit *int64 `json:"burstLimit,omitempty"`
+	BurstLimit *int64   `json:"burstLimit,omitempty"`
+	RateLimit  *float64 `json:"rateLimit,omitempty"`
 }
 
 // An API Gateway VPC link for a RestApi to access resources in an Amazon Virtual

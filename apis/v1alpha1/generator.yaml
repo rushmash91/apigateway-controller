@@ -16,7 +16,7 @@ ignore:
     - RequestValidator
 #    - Resource
 #    - RestApi
-    - Stage
+#    - Stage
     - UsagePlan
     - UsagePlanKey
 #    - VpcLink
@@ -156,6 +156,38 @@ resources:
     hooks:
       sdk_update_post_build_request:
         template_path: hooks/integration/sdk_update_post_build_request.go.tpl
+      delta_pre_compare:
+        code: customPreCompare(a, b)
+    exceptions:
+      terminal_codes:
+        - BadRequestException
+        - ConflictException
+        - NotFoundException
+        - InvalidParameter
+  # Fields AccessLogSettings and ClientCertificateId are not in the Create API. Support for them will be added based on
+  # customer interest.
+  Stage:
+    fields:
+      RestAPIID:
+        references:
+          resource: RestAPI
+          path: Status.ID
+        is_required: true
+        is_immutable: true
+      StageName:
+        is_required: true
+        is_immutable: true
+    synced:
+      when:
+        - path: Status.CacheClusterStatus
+          in:
+            - AVAILABLE
+            - NOT_AVAILABLE
+    hooks:
+      sdk_update_pre_build_request:
+        template_path: hooks/stage/sdk_update_pre_build_request.go.tpl
+      sdk_update_post_build_request:
+        template_path: hooks/stage/sdk_update_post_build_request.go.tpl
       delta_pre_compare:
         code: customPreCompare(a, b)
     exceptions:
