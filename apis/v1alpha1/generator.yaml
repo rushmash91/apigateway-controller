@@ -1,3 +1,8 @@
+operations:
+  PutIntegration:
+    operation_type:
+      - Create
+    resource_name: Integration
 ignore:
   resource_names:
     - ApiKey
@@ -116,6 +121,43 @@ resources:
         DeleteResource:
           input_fields:
             ResourceId: Id
+    exceptions:
+      terminal_codes:
+        - BadRequestException
+        - ConflictException
+        - NotFoundException
+        - InvalidParameter
+  Integration:
+    fields:
+      ResourceID:
+        is_primary_key: true
+        references:
+          resource: Resource
+          path: Status.ID
+        is_immutable: true
+      RestAPIID:
+        references:
+          resource: RestAPI
+          path: Status.ID
+        is_required: true
+        is_immutable: true
+      HTTPMethod:
+        is_required: true
+        is_immutable: true
+      Type:
+        is_immutable: true
+        go_tag: json:"type,omitempty"
+      ConnectionID:
+        references:
+          resource: VPCLink
+          path: Status.ID
+    tags:
+      ignore: true
+    hooks:
+      sdk_update_post_build_request:
+        template_path: hooks/integration/sdk_update_post_build_request.go.tpl
+      delta_pre_compare:
+        code: customPreCompare(a, b)
     exceptions:
       terminal_codes:
         - BadRequestException

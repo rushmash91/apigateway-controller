@@ -33,6 +33,26 @@ rules:
 - apiGroups:
   - apigateway.services.k8s.aws
   resources:
+  - integrations
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apigateway.services.k8s.aws
+  resources:
+  - integrations/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - apigateway.services.k8s.aws
+  resources:
   - resources
   verbs:
   - create

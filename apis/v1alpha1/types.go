@@ -70,14 +70,28 @@ type EndpointConfiguration struct {
 	VPCEndpointRefs []*ackv1alpha1.AWSResourceReferenceWrapper `json:"vpcEndpointRefs,omitempty"`
 }
 
+// Represents an integration response. The status code must map to an existing
+// MethodResponse, and parameters and templates can be used to transform the
+// back-end response.
+type IntegrationResponse struct {
+	ContentHandling    *string            `json:"contentHandling,omitempty"`
+	ResponseParameters map[string]*string `json:"responseParameters,omitempty"`
+	ResponseTemplates  map[string]*string `json:"responseTemplates,omitempty"`
+	SelectionPattern   *string            `json:"selectionPattern,omitempty"`
+	// The status code.
+	StatusCode *string `json:"statusCode,omitempty"`
+}
+
 // Specifies the method setting properties.
 type MethodSetting struct {
 	CacheDataEncrypted                  *bool   `json:"cacheDataEncrypted,omitempty"`
+	CacheTTLInSeconds                   *int64  `json:"cacheTTLInSeconds,omitempty"`
 	CachingEnabled                      *bool   `json:"cachingEnabled,omitempty"`
 	DataTraceEnabled                    *bool   `json:"dataTraceEnabled,omitempty"`
 	LoggingLevel                        *string `json:"loggingLevel,omitempty"`
 	MetricsEnabled                      *bool   `json:"metricsEnabled,omitempty"`
 	RequireAuthorizationForCacheControl *bool   `json:"requireAuthorizationForCacheControl,omitempty"`
+	ThrottlingBurstLimit                *int64  `json:"throttlingBurstLimit,omitempty"`
 }
 
 // Represents a summary of a Method resource, given a particular date and time.
@@ -112,6 +126,12 @@ type PatchOperation struct {
 	Op    *string `json:"op,omitempty"`
 	Path  *string `json:"path,omitempty"`
 	Value *string `json:"value,omitempty"`
+}
+
+// Quotas configured for a usage plan.
+type QuotaSettings struct {
+	Limit  *int64 `json:"limit,omitempty"`
+	Offset *int64 `json:"offset,omitempty"`
 }
 
 // Represents an API resource.
@@ -160,6 +180,11 @@ type StageKey struct {
 // Specifies the TLS configuration for an integration.
 type TLSConfig struct {
 	InsecureSkipVerification *bool `json:"insecureSkipVerification,omitempty"`
+}
+
+// The API request rate limits.
+type ThrottleSettings struct {
+	BurstLimit *int64 `json:"burstLimit,omitempty"`
 }
 
 // An API Gateway VPC link for a RestApi to access resources in an Amazon Virtual
