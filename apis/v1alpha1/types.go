@@ -114,6 +114,14 @@ type PatchOperation struct {
 	Value *string `json:"value,omitempty"`
 }
 
+// Represents an API resource.
+type Resource_SDK struct {
+	ID       *string `json:"id,omitempty"`
+	ParentID *string `json:"parentID,omitempty"`
+	Path     *string `json:"path,omitempty"`
+	PathPart *string `json:"pathPart,omitempty"`
+}
+
 // Represents a REST API.
 type RestAPI_SDK struct {
 	APIKeySource              *string      `json:"apiKeySource,omitempty"`

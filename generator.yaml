@@ -9,12 +9,15 @@ ignore:
     - DomainName
     - Model
     - RequestValidator
-    - Resource
+#    - Resource
 #    - RestApi
     - Stage
     - UsagePlan
     - UsagePlanKey
 #    - VpcLink
+
+  field_paths:
+    - Resource.ResourceMethods
 resources:
   VpcLink:
     fields:
@@ -78,6 +81,41 @@ resources:
         template_path: hooks/rest_api/sdk_update_post_build_request.go.tpl
       delta_pre_compare:
         code: customPreCompare(a, b)
+    exceptions:
+      terminal_codes:
+        - BadRequestException
+        - ConflictException
+        - NotFoundException
+        - InvalidParameter
+  Resource:
+    tags:
+      ignore: true
+    fields:
+      ID:
+        is_primary_key: true
+      ParentID:
+        references:
+          resource: Resource
+          path: Status.ID
+      RestAPIID:
+        references:
+          resource: RestAPI
+          path: Status.ID
+        is_immutable: true
+    hooks:
+      sdk_update_post_build_request:
+        template_path: hooks/resource/sdk_update_post_build_request.go.tpl
+    renames:
+      operations:
+        GetResource:
+          input_fields:
+            ResourceId: Id
+        UpdateResource:
+          input_fields:
+            ResourceId: Id
+        DeleteResource:
+          input_fields:
+            ResourceId: Id
     exceptions:
       terminal_codes:
         - BadRequestException
