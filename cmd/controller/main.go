@@ -40,6 +40,7 @@ import (
 	svctypes "github.com/aws-controllers-k8s/apigateway-controller/apis/v1alpha1"
 	svcresource "github.com/aws-controllers-k8s/apigateway-controller/pkg/resource"
 
+	_ "github.com/aws-controllers-k8s/apigateway-controller/pkg/resource/domain_name"
 	_ "github.com/aws-controllers-k8s/apigateway-controller/pkg/resource/integration"
 	_ "github.com/aws-controllers-k8s/apigateway-controller/pkg/resource/resource"
 	_ "github.com/aws-controllers-k8s/apigateway-controller/pkg/resource/rest_api"

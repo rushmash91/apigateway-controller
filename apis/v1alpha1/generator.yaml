@@ -13,7 +13,7 @@ ignore:
     - Deployment
     - DocumentationPart
     - DocumentationVersion
-    - DomainName
+    # - DomainName
     - DomainNameAccessAssociation
     - Model
     - RequestValidator
@@ -200,3 +200,27 @@ resources:
         - ConflictException
         - NotFoundException
         - InvalidParameter
+  DomainName:
+    fields:
+      DomainName:
+        is_primary_key: true
+        is_required: true
+        is_immutable: true
+      RestAPIID:
+        references:
+          resource: RestAPI
+          path: Status.ID
+        is_required: true
+        is_immutable: true
+    exceptions:
+      terminal_codes:
+        - BadRequestException
+        - ConflictException
+        - NotFoundException
+        - InvalidParameter
+    synced:
+      when:
+        - path: Status.DomainNameStatus
+          in:
+            - AVAILABLE
+            - NOT_AVAILABLE
