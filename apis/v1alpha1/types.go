@@ -28,6 +28,23 @@ var (
 	_ = ackv1alpha1.AWSAccountID("")
 )
 
+// A resource that can be distributed to callers for executing Method resources
+// that require an API key. API keys can be mapped to any Stage on any RestApi,
+// which indicates that the callers with the API key can make requests to that
+// stage.
+type APIKey_SDK struct {
+	CreatedDate     *metav1.Time       `json:"createdDate,omitempty"`
+	CustomerID      *string            `json:"customerID,omitempty"`
+	Description     *string            `json:"description,omitempty"`
+	Enabled         *bool              `json:"enabled,omitempty"`
+	ID              *string            `json:"id,omitempty"`
+	LastUpdatedDate *metav1.Time       `json:"lastUpdatedDate,omitempty"`
+	Name            *string            `json:"name,omitempty"`
+	StageKeys       []*string          `json:"stageKeys,omitempty"`
+	Tags            map[string]*string `json:"tags,omitempty"`
+	Value           *string            `json:"value,omitempty"`
+}
+
 // API stage name of the associated API stage in a usage plan.
 type APIStage struct {
 	APIID *string `json:"apiID,omitempty"`
@@ -41,12 +58,53 @@ type AccessLogSettings struct {
 	Format         *string `json:"format,omitempty"`
 }
 
+// Represents an authorization layer for methods. If enabled on a method, API
+// Gateway will activate the authorizer when a client calls the method.
+type Authorizer struct {
+	AuthType                     *string `json:"authType,omitempty"`
+	AuthorizerCredentials        *string `json:"authorizerCredentials,omitempty"`
+	AuthorizerResultTTLInSeconds *int64  `json:"authorizerResultTTLInSeconds,omitempty"`
+	AuthorizerURI                *string `json:"authorizerURI,omitempty"`
+	ID                           *string `json:"id,omitempty"`
+	IdentitySource               *string `json:"identitySource,omitempty"`
+	IdentityValidationExpression *string `json:"identityValidationExpression,omitempty"`
+	Name                         *string `json:"name,omitempty"`
+}
+
+// Represents the base path that callers of the API must provide as part of
+// the URL after the domain name.
+type BasePathMapping struct {
+	BasePath  *string `json:"basePath,omitempty"`
+	RestAPIID *string `json:"restAPIID,omitempty"`
+	Stage     *string `json:"stage,omitempty"`
+}
+
 // Configuration settings of a canary deployment.
 type CanarySettings struct {
 	DeploymentID           *string            `json:"deploymentID,omitempty"`
 	PercentTraffic         *float64           `json:"percentTraffic,omitempty"`
 	StageVariableOverrides map[string]*string `json:"stageVariableOverrides,omitempty"`
 	UseStageCache          *bool              `json:"useStageCache,omitempty"`
+}
+
+// Represents a client certificate used to configure client-side SSL authentication
+// while sending requests to the integration endpoint.
+type ClientCertificate struct {
+	ClientCertificateID   *string            `json:"clientCertificateID,omitempty"`
+	CreatedDate           *metav1.Time       `json:"createdDate,omitempty"`
+	Description           *string            `json:"description,omitempty"`
+	ExpirationDate        *metav1.Time       `json:"expirationDate,omitempty"`
+	PemEncodedCertificate *string            `json:"pemEncodedCertificate,omitempty"`
+	Tags                  map[string]*string `json:"tags,omitempty"`
+}
+
+// An immutable representation of a RestApi resource that can be called by users
+// using Stages. A deployment must be associated with a Stage for it to be callable
+// over the Internet.
+type Deployment struct {
+	CreatedDate *metav1.Time `json:"createdDate,omitempty"`
+	Description *string      `json:"description,omitempty"`
+	ID          *string      `json:"id,omitempty"`
 }
 
 // The input configuration for a canary deployment.
@@ -56,11 +114,48 @@ type DeploymentCanarySettings struct {
 	UseStageCache          *bool              `json:"useStageCache,omitempty"`
 }
 
+// A documentation part for a targeted API entity.
+type DocumentationPart struct {
+	ID         *string `json:"id,omitempty"`
+	Properties *string `json:"properties,omitempty"`
+}
+
 // Specifies the target API entity to which the documentation applies.
 type DocumentationPartLocation struct {
 	Method *string `json:"method,omitempty"`
 	Name   *string `json:"name,omitempty"`
 	Path   *string `json:"path,omitempty"`
+}
+
+// A snapshot of the documentation of an API.
+type DocumentationVersion struct {
+	CreatedDate *metav1.Time `json:"createdDate,omitempty"`
+	Description *string      `json:"description,omitempty"`
+	Version     *string      `json:"version,omitempty"`
+}
+
+// Represents a custom domain name as a user-friendly host name of an API (RestApi).
+type DomainName struct {
+	CertificateARN           *string      `json:"certificateARN,omitempty"`
+	CertificateName          *string      `json:"certificateName,omitempty"`
+	CertificateUploadDate    *metav1.Time `json:"certificateUploadDate,omitempty"`
+	DistributionDomainName   *string      `json:"distributionDomainName,omitempty"`
+	DistributionHostedZoneID *string      `json:"distributionHostedZoneID,omitempty"`
+	DomainName               *string      `json:"domainName,omitempty"`
+	DomainNameARN            *string      `json:"domainNameARN,omitempty"`
+	DomainNameID             *string      `json:"domainNameID,omitempty"`
+	DomainNameStatusMessage  *string      `json:"domainNameStatusMessage,omitempty"`
+	// The endpoint configuration to indicate the types of endpoints an API (RestApi)
+	// or its custom domain name (DomainName) has.
+	EndpointConfiguration               *EndpointConfiguration `json:"endpointConfiguration,omitempty"`
+	ManagementPolicy                    *string                `json:"managementPolicy,omitempty"`
+	OwnershipVerificationCertificateARN *string                `json:"ownershipVerificationCertificateARN,omitempty"`
+	Policy                              *string                `json:"policy,omitempty"`
+	RegionalCertificateARN              *string                `json:"regionalCertificateARN,omitempty"`
+	RegionalCertificateName             *string                `json:"regionalCertificateName,omitempty"`
+	RegionalDomainName                  *string                `json:"regionalDomainName,omitempty"`
+	RegionalHostedZoneID                *string                `json:"regionalHostedZoneID,omitempty"`
+	Tags                                map[string]*string     `json:"tags,omitempty"`
 }
 
 // Represents a domain name access association between an access association
@@ -175,6 +270,15 @@ type MethodSnapshot struct {
 	AuthorizationType *string `json:"authorizationType,omitempty"`
 }
 
+// Represents the data structure of a method's request or response payload.
+type Model struct {
+	ContentType *string `json:"contentType,omitempty"`
+	Description *string `json:"description,omitempty"`
+	ID          *string `json:"id,omitempty"`
+	Name        *string `json:"name,omitempty"`
+	Schema      *string `json:"schema,omitempty"`
+}
+
 // The mutual TLS authentication configuration for a custom domain name. If
 // specified, API Gateway performs two-way authentication between the client
 // and the server. Clients must present a trusted certificate to access your
@@ -246,6 +350,13 @@ type SDKConfigurationProperty struct {
 	Required     *bool   `json:"required,omitempty"`
 }
 
+// A type of SDK that API Gateway can generate.
+type SDKType struct {
+	Description  *string `json:"description,omitempty"`
+	FriendlyName *string `json:"friendlyName,omitempty"`
+	ID           *string `json:"id,omitempty"`
+}
+
 // A reference to a unique stage identified in the format {restApiId}/{stage}.
 type StageKey struct {
 	RestAPIID *string `json:"restAPIID,omitempty"`
@@ -288,6 +399,28 @@ type TLSConfig struct {
 type ThrottleSettings struct {
 	BurstLimit *int64   `json:"burstLimit,omitempty"`
 	RateLimit  *float64 `json:"rateLimit,omitempty"`
+}
+
+// Represents a usage plan used to specify who can assess associated API stages.
+// Optionally, target request rate and quota limits can be set. In some cases
+// clients can exceed the targets that you set. Don’t rely on usage plans
+// to control costs. Consider using Amazon Web Services Budgets (https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-managing-costs.html)
+// to monitor costs and WAF (https://docs.aws.amazon.com/waf/latest/developerguide/waf-chapter.html)
+// to manage API requests.
+type UsagePlan struct {
+	Description *string            `json:"description,omitempty"`
+	ID          *string            `json:"id,omitempty"`
+	Name        *string            `json:"name,omitempty"`
+	ProductCode *string            `json:"productCode,omitempty"`
+	Tags        map[string]*string `json:"tags,omitempty"`
+}
+
+// Represents a usage plan key to identify a plan customer.
+type UsagePlanKey struct {
+	ID    *string `json:"id,omitempty"`
+	Name  *string `json:"name,omitempty"`
+	Type  *string `json:"type_,omitempty"`
+	Value *string `json:"value,omitempty"`
 }
 
 // An API Gateway VPC link for a RestApi to access resources in an Amazon Virtual

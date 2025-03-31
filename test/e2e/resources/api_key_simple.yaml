@@ -1,0 +1,14 @@
+apiVersion: apigateway.services.k8s.aws/v1alpha1
+kind: APIKey
+metadata:
+  name: ${API_KEY_NAME}
+spec:
+  name: ${API_KEY_NAME}
+  description: API Key for testing
+  enabled: true
+  stageKeys:
+    - restAPIID: ${REST_API_ID}
+      stageName: ${STAGE_NAME}
+  tags:
+    k1: v1
+    k2: v2 

@@ -7,7 +7,7 @@ operations:
     resource_name: Integration
 ignore:
   resource_names:
-    - ApiKey
+    # - ApiKey
     - Authorizer
     - BasePathMapping
     - Deployment
@@ -27,6 +27,10 @@ ignore:
   field_paths:
     - Resource.ResourceMethods
     - CreateResourceOutput.ResourceMethods
+    - GetApiKeyInput.IncludeValue
+    - CreateApiKeyOutput.StageKeys
+    - UpdateApiKeyOutput.StageKeys
+    - GetApiKeyOutput.StageKeys
 resources:
   VpcLink:
     fields:
@@ -200,3 +204,39 @@ resources:
         - ConflictException
         - NotFoundException
         - InvalidParameter
+  ApiKey:
+    fields:
+      ID:
+        is_primary_key: true
+      Name:
+        is_required: true
+      StageKeys:
+        list_of: StageKey
+    exceptions:
+      terminal_codes:
+        - BadRequestException
+        - ConflictException
+        - NotFoundException
+        - InvalidParameter
+    renames:
+      operations:
+        GetApiKey:
+          input_fields:
+            ApiKey: Id
+        UpdateApiKey:
+          input_fields:
+            ApiKey: Id
+        DeleteApiKey:
+          input_fields:
+            ApiKey: Id
+    hooks:
+      sdk_update_post_build_request:
+        template_path: hooks/api_key/sdk_update_post_build_request.go.tpl
+      sdk_read_one_post_build_request:
+        template_path: hooks/api_key/sdk_read_one_post_build_request.go.tpl
+      sdk_read_one_post_request:
+        template_path: hooks/api_key/sdk_read_one_post_request.go.tpl
+      sdk_create_post_request:
+        template_path: hooks/api_key/sdk_create_post_request.go.tpl
+      sdk_update_post_request:
+        template_path: hooks/api_key/sdk_update_post_request.go.tpl
