@@ -11,6 +11,7 @@ rules:
   resources:
   - apiintegrationresponses
   - apimethodresponses
+  - apikeys
   - integrations
   - methods
   - resources
@@ -30,6 +31,7 @@ rules:
   resources:
   - apiintegrationresponses
   - apimethodresponses
+  - apikeys
   - integrations
   - methods
   - resources

@@ -43,7 +43,7 @@ operations:
     resource_name: ApiIntegrationResponse
 ignore:
   resource_names:
-    - ApiKey
+    # - ApiKey
     - Authorizer
     - BasePathMapping
     - Deployment
@@ -63,6 +63,14 @@ ignore:
   field_paths:
     - Resource.ResourceMethods
     - CreateResourceOutput.ResourceMethods
+    - GetApiKeyInput.IncludeValue
+    - GetApiKeyOutput.Value
+    - CreateApiKeyOutput.Value
+    - UpdateApiKeyInput.Value
+    - UpdateApiKeyOutput.Value
+    - CreateApiKeyOutput.StageKeys
+    - UpdateApiKeyOutput.StageKeys
+    - GetApiKeyOutput.StageKeys
 resources:
   VpcLink:
     fields:
@@ -322,3 +330,43 @@ resources:
       terminal_codes:
         - BadRequestException
         - InvalidParameter
+  ApiKey:
+    fields:
+      ID:
+        is_primary_key: true
+      Name:
+        is_required: true
+      StageKeys:
+        list_of: StageKey
+      Value:
+        is_secret: true
+    exceptions:
+      terminal_codes:
+        - BadRequestException
+        - ConflictException
+        - NotFoundException
+        - InvalidParameter
+    renames:
+      operations:
+        GetApiKey:
+          input_fields:
+            ApiKey: Id
+        UpdateApiKey:
+          input_fields:
+            ApiKey: Id
+        DeleteApiKey:
+          input_fields:
+            ApiKey: Id
+    hooks:
+      delta_pre_compare:
+        code: compareTags(delta, a, b)
+      sdk_update_post_build_request:
+        template_path: hooks/api_key/sdk_update_post_build_request.go.tpl
+      sdk_read_one_post_request:
+        template_path: hooks/api_key/sdk_read_one_post_request.go.tpl
+      sdk_create_post_request:
+        template_path: hooks/api_key/sdk_update_post_request.go.tpl
+      sdk_update_post_request:
+        template_path: hooks/api_key/sdk_update_post_request.go.tpl
+      sdk_read_one_post_set_output:
+        template_path: hooks/api_key/sdk_read_one_post_set_output.go.tpl

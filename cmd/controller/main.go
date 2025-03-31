@@ -42,6 +42,7 @@ import (
 
 	_ "github.com/aws-controllers-k8s/apigateway-controller/pkg/resource/api_integration_response"
 	_ "github.com/aws-controllers-k8s/apigateway-controller/pkg/resource/api_method_response"
+	_ "github.com/aws-controllers-k8s/apigateway-controller/pkg/resource/api_key"
 	_ "github.com/aws-controllers-k8s/apigateway-controller/pkg/resource/integration"
 	_ "github.com/aws-controllers-k8s/apigateway-controller/pkg/resource/method"
 	_ "github.com/aws-controllers-k8s/apigateway-controller/pkg/resource/resource"
