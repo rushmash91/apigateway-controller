@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - common
   - bases/apigateway.services.k8s.aws_integrations.yaml
+  - bases/apigateway.services.k8s.aws_methods.yaml
   - bases/apigateway.services.k8s.aws_resources.yaml
   - bases/apigateway.services.k8s.aws_restapis.yaml
   - bases/apigateway.services.k8s.aws_stages.yaml

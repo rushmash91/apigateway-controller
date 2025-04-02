@@ -5,6 +5,10 @@ operations:
     operation_type:
       - Create
     resource_name: Integration
+  PutMethod:
+    operation_type:
+      - Create
+    resource_name: Method
 ignore:
   resource_names:
     - ApiKey
@@ -200,3 +204,33 @@ resources:
         - ConflictException
         - NotFoundException
         - InvalidParameter
+  Method:
+    fields:
+      ResourceID:
+        is_primary_key: true
+        references:
+          resource: Resource
+          path: Status.ID
+        is_immutable: true
+      RestAPIID:
+        references:
+          resource: RestAPI
+          path: Status.ID
+        is_required: true
+        is_immutable: true
+      HTTPMethod:
+        is_required: true
+        is_immutable: true
+      MethodIntegration.Type:
+        go_tag: json:"type,omitempty"
+    hooks:
+      sdk_update_post_build_request:
+        template_path: hooks/method/sdk_update_post_build_request.go.tpl
+    exceptions:
+      terminal_codes:
+        - BadRequestException
+        - ConflictException
+        - NotFoundException
+        - InvalidParameter
+    tags:
+      ignore: true

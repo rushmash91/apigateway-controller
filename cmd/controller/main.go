@@ -41,6 +41,7 @@ import (
 	svcresource "github.com/aws-controllers-k8s/apigateway-controller/pkg/resource"
 
 	_ "github.com/aws-controllers-k8s/apigateway-controller/pkg/resource/integration"
+	_ "github.com/aws-controllers-k8s/apigateway-controller/pkg/resource/method"
 	_ "github.com/aws-controllers-k8s/apigateway-controller/pkg/resource/resource"
 	_ "github.com/aws-controllers-k8s/apigateway-controller/pkg/resource/rest_api"
 	_ "github.com/aws-controllers-k8s/apigateway-controller/pkg/resource/stage"

@@ -73,6 +73,7 @@ rules:
   - apigateway.services.k8s.aws
   resources:
   - integrations
+  - methods
   - resources
   - restapis
   - stages
@@ -89,6 +90,7 @@ rules:
   - apigateway.services.k8s.aws
   resources:
   - integrations/status
+  - methods/status
   - resources/status
   - restapis/status
   - stages/status
