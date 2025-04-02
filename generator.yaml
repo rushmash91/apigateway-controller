@@ -25,6 +25,22 @@ operations:
     operation_type:
       - READ_ONE
     resource_name: ApiMethodResponse
+  PutIntegrationResponse:
+    operation_type:
+      - Create
+    resource_name: ApiIntegrationResponse
+  DeleteIntegrationResponse:
+    operation_type:
+      - Delete
+    resource_name: ApiIntegrationResponse
+  UpdateIntegrationResponse:
+    operation_type:
+      - Update
+    resource_name: ApiIntegrationResponse
+  GetIntegrationResponse:
+    operation_type:
+      - READ_ONE
+    resource_name: ApiIntegrationResponse
 ignore:
   resource_names:
     - ApiKey
@@ -273,6 +289,35 @@ resources:
     hooks:
       sdk_update_post_build_request:
         template_path: hooks/api_method_response/sdk_update_post_build_request.go.tpl
+    exceptions:
+      terminal_codes:
+        - BadRequestException
+        - InvalidParameter
+  ApiIntegrationResponse:
+    fields:
+      ResourceID:
+        is_primary_key: true
+        references:
+          resource: Resource
+          path: Status.ID
+        is_immutable: true
+      RestAPIID:
+        references:
+          resource: RestAPI
+          path: Status.ID
+        is_required: true
+        is_immutable: true
+      HTTPMethod:
+        is_required: true
+        is_immutable: true
+      StatusCode:
+        is_required: true
+        is_immutable: true
+    tags:
+      ignore: true
+    hooks:
+      sdk_update_post_build_request:
+        template_path: hooks/integration_response/sdk_update_post_build_request.go.tpl
     exceptions:
       terminal_codes:
         - BadRequestException
