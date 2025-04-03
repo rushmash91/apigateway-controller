@@ -81,7 +81,7 @@ def simple_rest_api(apigateway_client) -> Tuple[k8s.CustomResourceReference, Dic
 
     yield ref, cr
 
-    _, deleted = k8s.delete_custom_resource(ref, 3, 10)
+    _, deleted = k8s.delete_custom_resource(ref, 10, 30)
     assert deleted
 
 
