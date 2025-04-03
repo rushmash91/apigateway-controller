@@ -9,8 +9,8 @@ rules:
 - apiGroups:
   - apigateway.services.k8s.aws
   resources:
-  - apimethodresponses
   - apiintegrationresponses
+  - apimethodresponses
   - integrations
   - methods
   - resources

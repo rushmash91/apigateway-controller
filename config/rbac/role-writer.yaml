@@ -2,14 +2,15 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
+  creationTimestamp: null
   name: ack-apigateway-writer
   namespace: default
 rules:
 - apiGroups:
   - apigateway.services.k8s.aws
   resources:
-  - apimethodresponses
   - apiintegrationresponses
+  - apimethodresponses
   - integrations
   - methods
   - resources
@@ -27,8 +28,8 @@ rules:
 - apiGroups:
   - apigateway.services.k8s.aws
   resources:
-  - apimethodresponses
   - apiintegrationresponses
+  - apimethodresponses
   - integrations
   - methods
   - resources

@@ -81,7 +81,7 @@ def simple_resource(simple_rest_api, apigateway_client) -> Tuple[k8s.CustomResou
     cr = k8s.get_resource(ref)
     yield ref, cr, rest_api_cr, resource_query
 
-    _, deleted = k8s.delete_custom_resource(ref, 10, 30)
+    _, deleted = k8s.delete_custom_resource(ref, 10, 60)
     assert deleted
     wait_until_deleted(partial(apigateway_client.get_resource, **resource_query))
 

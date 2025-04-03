@@ -57,11 +57,100 @@ var (
 func (rm *resourceManager) sdkFind(
 	ctx context.Context,
 	r *resource,
-) (*resource, error) {
-	// Believe it or not, there are API resources that can be created but there
-	// is no read operation. Point in case: RDS' CreateDBInstanceReadReplica
-	// has no corresponding read operation that I know of...
-	return nil, ackerr.NotImplemented
+) (latest *resource, err error) {
+	rlog := ackrtlog.FromContext(ctx)
+	exit := rlog.Trace("rm.sdkFind")
+	defer func() {
+		exit(err)
+	}()
+	// If any required fields in the input shape are missing, AWS resource is
+	// not created yet. Return NotFound here to indicate to callers that the
+	// resource isn't yet created.
+	if rm.requiredFieldsMissingFromReadOneInput(r) {
+		return nil, ackerr.NotFound
+	}
+
+	input, err := rm.newDescribeRequestPayload(r)
+	if err != nil {
+		return nil, err
+	}
+
+	var resp *svcsdk.GetIntegrationResponseOutput
+	resp, err = rm.sdkapi.GetIntegrationResponse(ctx, input)
+	rm.metrics.RecordAPICall("READ_ONE", "GetIntegrationResponse", err)
+	if err != nil {
+		var awsErr smithy.APIError
+		if errors.As(err, &awsErr) && awsErr.ErrorCode() == "NotFoundException" {
+			return nil, ackerr.NotFound
+		}
+		return nil, err
+	}
+
+	// Merge in the information we read from the API call above to the copy of
+	// the original Kubernetes object we passed to the function
+	ko := r.ko.DeepCopy()
+
+	if resp.ContentHandling != "" {
+		ko.Spec.ContentHandling = aws.String(string(resp.ContentHandling))
+	} else {
+		ko.Spec.ContentHandling = nil
+	}
+	if resp.ResponseParameters != nil {
+		ko.Spec.ResponseParameters = aws.StringMap(resp.ResponseParameters)
+	} else {
+		ko.Spec.ResponseParameters = nil
+	}
+	if resp.ResponseTemplates != nil {
+		ko.Spec.ResponseTemplates = aws.StringMap(resp.ResponseTemplates)
+	} else {
+		ko.Spec.ResponseTemplates = nil
+	}
+	if resp.SelectionPattern != nil {
+		ko.Spec.SelectionPattern = resp.SelectionPattern
+	} else {
+		ko.Spec.SelectionPattern = nil
+	}
+	if resp.StatusCode != nil {
+		ko.Spec.StatusCode = resp.StatusCode
+	} else {
+		ko.Spec.StatusCode = nil
+	}
+
+	rm.setStatusDefaults(ko)
+	return &resource{ko}, nil
+}
+
+// requiredFieldsMissingFromReadOneInput returns true if there are any fields
+// for the ReadOne Input shape that are required but not present in the
+// resource's Spec or Status
+func (rm *resourceManager) requiredFieldsMissingFromReadOneInput(
+	r *resource,
+) bool {
+	return r.ko.Spec.HTTPMethod == nil || r.ko.Spec.ResourceID == nil || r.ko.Spec.RestAPIID == nil || r.ko.Spec.StatusCode == nil
+
+}
+
+// newDescribeRequestPayload returns SDK-specific struct for the HTTP request
+// payload of the Describe API call for the resource
+func (rm *resourceManager) newDescribeRequestPayload(
+	r *resource,
+) (*svcsdk.GetIntegrationResponseInput, error) {
+	res := &svcsdk.GetIntegrationResponseInput{}
+
+	if r.ko.Spec.HTTPMethod != nil {
+		res.HttpMethod = r.ko.Spec.HTTPMethod
+	}
+	if r.ko.Spec.ResourceID != nil {
+		res.ResourceId = r.ko.Spec.ResourceID
+	}
+	if r.ko.Spec.RestAPIID != nil {
+		res.RestApiId = r.ko.Spec.RestAPIID
+	}
+	if r.ko.Spec.StatusCode != nil {
+		res.StatusCode = r.ko.Spec.StatusCode
+	}
+
+	return res, nil
 }
 
 // sdkCreate creates the supplied resource in the backend AWS service API and
@@ -165,8 +254,82 @@ func (rm *resourceManager) sdkUpdate(
 	desired *resource,
 	latest *resource,
 	delta *ackcompare.Delta,
-) (*resource, error) {
-	return nil, ackerr.NewTerminalError(ackerr.NotImplemented)
+) (updated *resource, err error) {
+	rlog := ackrtlog.FromContext(ctx)
+	exit := rlog.Trace("rm.sdkUpdate")
+	defer func() {
+		exit(err)
+	}()
+	input, err := rm.newUpdateRequestPayload(ctx, desired, delta)
+	if err != nil {
+		return nil, err
+	}
+	updateIntegrationResponseInput(desired, latest, input, delta)
+
+	var resp *svcsdk.UpdateIntegrationResponseOutput
+	_ = resp
+	resp, err = rm.sdkapi.UpdateIntegrationResponse(ctx, input)
+	rm.metrics.RecordAPICall("UPDATE", "UpdateIntegrationResponse", err)
+	if err != nil {
+		return nil, err
+	}
+	// Merge in the information we read from the API call above to the copy of
+	// the original Kubernetes object we passed to the function
+	ko := desired.ko.DeepCopy()
+
+	if resp.ContentHandling != "" {
+		ko.Spec.ContentHandling = aws.String(string(resp.ContentHandling))
+	} else {
+		ko.Spec.ContentHandling = nil
+	}
+	if resp.ResponseParameters != nil {
+		ko.Spec.ResponseParameters = aws.StringMap(resp.ResponseParameters)
+	} else {
+		ko.Spec.ResponseParameters = nil
+	}
+	if resp.ResponseTemplates != nil {
+		ko.Spec.ResponseTemplates = aws.StringMap(resp.ResponseTemplates)
+	} else {
+		ko.Spec.ResponseTemplates = nil
+	}
+	if resp.SelectionPattern != nil {
+		ko.Spec.SelectionPattern = resp.SelectionPattern
+	} else {
+		ko.Spec.SelectionPattern = nil
+	}
+	if resp.StatusCode != nil {
+		ko.Spec.StatusCode = resp.StatusCode
+	} else {
+		ko.Spec.StatusCode = nil
+	}
+
+	rm.setStatusDefaults(ko)
+	return &resource{ko}, nil
+}
+
+// newUpdateRequestPayload returns an SDK-specific struct for the HTTP request
+// payload of the Update API call for the resource
+func (rm *resourceManager) newUpdateRequestPayload(
+	ctx context.Context,
+	r *resource,
+	delta *ackcompare.Delta,
+) (*svcsdk.UpdateIntegrationResponseInput, error) {
+	res := &svcsdk.UpdateIntegrationResponseInput{}
+
+	if r.ko.Spec.HTTPMethod != nil {
+		res.HttpMethod = r.ko.Spec.HTTPMethod
+	}
+	if r.ko.Spec.ResourceID != nil {
+		res.ResourceId = r.ko.Spec.ResourceID
+	}
+	if r.ko.Spec.RestAPIID != nil {
+		res.RestApiId = r.ko.Spec.RestAPIID
+	}
+	if r.ko.Spec.StatusCode != nil {
+		res.StatusCode = r.ko.Spec.StatusCode
+	}
+
+	return res, nil
 }
 
 // sdkDelete deletes the supplied resource in the backend AWS service API
@@ -179,9 +342,38 @@ func (rm *resourceManager) sdkDelete(
 	defer func() {
 		exit(err)
 	}()
-	// TODO(jaypipes): Figure this out...
-	return nil, nil
+	input, err := rm.newDeleteRequestPayload(r)
+	if err != nil {
+		return nil, err
+	}
+	var resp *svcsdk.DeleteIntegrationResponseOutput
+	_ = resp
+	resp, err = rm.sdkapi.DeleteIntegrationResponse(ctx, input)
+	rm.metrics.RecordAPICall("DELETE", "DeleteIntegrationResponse", err)
+	return nil, err
+}
 
+// newDeleteRequestPayload returns an SDK-specific struct for the HTTP request
+// payload of the Delete API call for the resource
+func (rm *resourceManager) newDeleteRequestPayload(
+	r *resource,
+) (*svcsdk.DeleteIntegrationResponseInput, error) {
+	res := &svcsdk.DeleteIntegrationResponseInput{}
+
+	if r.ko.Spec.HTTPMethod != nil {
+		res.HttpMethod = r.ko.Spec.HTTPMethod
+	}
+	if r.ko.Spec.ResourceID != nil {
+		res.ResourceId = r.ko.Spec.ResourceID
+	}
+	if r.ko.Spec.RestAPIID != nil {
+		res.RestApiId = r.ko.Spec.RestAPIID
+	}
+	if r.ko.Spec.StatusCode != nil {
+		res.StatusCode = r.ko.Spec.StatusCode
+	}
+
+	return res, nil
 }
 
 // setStatusDefaults sets default properties into supplied custom resource
@@ -293,8 +485,6 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 	}
 	switch terminalErr.ErrorCode() {
 	case "BadRequestException",
-		"ConflictException",
-		"NotFoundException",
 		"InvalidParameter":
 		return true
 	default:

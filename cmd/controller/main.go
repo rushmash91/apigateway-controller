@@ -40,8 +40,8 @@ import (
 	svctypes "github.com/aws-controllers-k8s/apigateway-controller/apis/v1alpha1"
 	svcresource "github.com/aws-controllers-k8s/apigateway-controller/pkg/resource"
 
-	_ "github.com/aws-controllers-k8s/apigateway-controller/pkg/resource/api_method_response"
 	_ "github.com/aws-controllers-k8s/apigateway-controller/pkg/resource/api_integration_response"
+	_ "github.com/aws-controllers-k8s/apigateway-controller/pkg/resource/api_method_response"
 	_ "github.com/aws-controllers-k8s/apigateway-controller/pkg/resource/integration"
 	_ "github.com/aws-controllers-k8s/apigateway-controller/pkg/resource/method"
 	_ "github.com/aws-controllers-k8s/apigateway-controller/pkg/resource/resource"
