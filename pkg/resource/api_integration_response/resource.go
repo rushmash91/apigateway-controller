@@ -19,6 +19,7 @@ import (
 	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
 	ackerrors "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	acktypes "github.com/aws-controllers-k8s/runtime/pkg/types"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	rtclient "sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -85,11 +86,48 @@ func (r *resource) SetStatus(desired acktypes.AWSResource) {
 // SetIdentifiers sets the Spec or Status field that is referenced as the unique
 // resource identifier
 func (r *resource) SetIdentifiers(identifier *ackv1alpha1.AWSIdentifiers) error {
+	if identifier.NameOrID == "" {
+		return ackerrors.MissingNameIdentifier
+	}
+	r.ko.Spec.ResourceID = &identifier.NameOrID
+
+	f0, f0ok := identifier.AdditionalKeys["httpMethod"]
+	if f0ok {
+		r.ko.Spec.HTTPMethod = aws.String(f0)
+	}
+	f2, f2ok := identifier.AdditionalKeys["restAPIID"]
+	if f2ok {
+		r.ko.Spec.RestAPIID = aws.String(f2)
+	}
+	f3, f3ok := identifier.AdditionalKeys["statusCode"]
+	if f3ok {
+		r.ko.Spec.StatusCode = aws.String(f3)
+	}
+
 	return nil
 }
 
 // PopulateResourceFromAnnotation populates the fields passed from adoption annotation
 func (r *resource) PopulateResourceFromAnnotation(fields map[string]string) error {
+	tmp, ok := fields["resourceID"]
+	if !ok {
+		return ackerrors.MissingNameIdentifier
+	}
+	r.ko.Spec.ResourceID = &tmp
+
+	f0, f0ok := fields["httpMethod"]
+	if f0ok {
+		r.ko.Spec.HTTPMethod = aws.String(f0)
+	}
+	f2, f2ok := fields["restAPIID"]
+	if f2ok {
+		r.ko.Spec.RestAPIID = aws.String(f2)
+	}
+	f3, f3ok := fields["statusCode"]
+	if f3ok {
+		r.ko.Spec.StatusCode = aws.String(f3)
+	}
+
 	return nil
 }
 

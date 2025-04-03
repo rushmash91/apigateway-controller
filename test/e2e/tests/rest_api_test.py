@@ -47,7 +47,7 @@ def apigateway_client():
     return boto3.client(SERVICE_NAME)
 
 
-@pytest.fixture
+@pytest.fixture(scope='module')
 def simple_rest_api(apigateway_client) -> Tuple[k8s.CustomResourceReference, Dict]:
     rest_api_name = random_suffix_name("simple-rest-api", 32)
 
@@ -67,7 +67,18 @@ def simple_rest_api(apigateway_client) -> Tuple[k8s.CustomResourceReference, Dic
         rest_api_name,
         namespace="default",
     )
-    k8s.create_custom_resource(ref, resource_data)
+    # Add retry logic for rate limits
+    try:
+        k8s.create_custom_resource(ref, resource_data)
+    except Exception as e:
+        if "TooManyRequests" in str(e):
+            logging.warning(
+                "Hit rate limit, waiting 30 seconds before retrying...")
+            time.sleep(30)
+            k8s.create_custom_resource(ref, resource_data)
+        else:
+            raise
+
     cr = k8s.wait_resource_consumed_by_controller(ref, wait_periods=30)
 
     assert cr is not None
@@ -81,7 +92,7 @@ def simple_rest_api(apigateway_client) -> Tuple[k8s.CustomResourceReference, Dic
 
     yield ref, cr
 
-    _, deleted = k8s.delete_custom_resource(ref, 3, 10)
+    _, deleted = k8s.delete_custom_resource(ref, 10, 30)
     assert deleted
 
 

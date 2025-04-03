@@ -9,6 +9,18 @@ operations:
     operation_type:
       - Create
     resource_name: ApiIntegrationResponse
+  DeleteIntegrationResponse:
+    operation_type:
+      - Delete
+    resource_name: ApiIntegrationResponse
+  UpdateIntegrationResponse:
+    operation_type:
+      - Update
+    resource_name: ApiIntegrationResponse
+  GetIntegrationResponse:
+    operation_type:
+      - READ_ONE
+    resource_name: ApiIntegrationResponse
 ignore:
   resource_names:
     - ApiKey
@@ -224,15 +236,11 @@ resources:
       StatusCode:
         is_required: true
         is_immutable: true
-      # ResponseParameters:
-      #   type: "map[string]*string"
-      # ResponseTemplates:
-      #   type: "map[string]*string"
     tags:
       ignore: true
-    # hooks:
-    #   sdk_update_post_build_request:
-    #     template_path: hooks/integration_response/sdk_update_post_build_request.go.tpl
+    hooks:
+      sdk_update_post_build_request:
+        template_path: hooks/integration_response/sdk_update_post_build_request.go.tpl
     exceptions:
       terminal_codes:
         - BadRequestException
