@@ -9,6 +9,22 @@ operations:
     operation_type:
       - Create
     resource_name: Method
+  PutMethodResponse:
+    operation_type:
+      - Create
+    resource_name: ApiMethodResponse
+  DeleteMethodResponse:
+    operation_type:
+      - Delete
+    resource_name: ApiMethodResponse
+  UpdateMethodResponse:
+    operation_type:
+      - Update
+    resource_name: ApiMethodResponse
+  GetMethodResponse:
+    operation_type:
+      - READ_ONE
+    resource_name: ApiMethodResponse
 ignore:
   resource_names:
     - ApiKey
@@ -231,3 +247,33 @@ resources:
         - InvalidParameter
     tags:
       ignore: true
+  ApiMethodResponse:
+    fields:
+      ResourceID:
+        references:
+          resource: Resource
+          path: Status.ID
+        is_required: true
+        is_immutable: true
+        is_primary_key: true
+      RestAPIID:
+        references:
+          resource: RestAPI
+          path: Status.ID
+        is_required: true
+        is_immutable: true
+      HTTPMethod:
+        is_required: true
+        is_immutable: true
+      StatusCode:
+        is_required: true
+        is_immutable: true
+    tags:
+      ignore: true
+    hooks:
+      sdk_update_post_build_request:
+        template_path: hooks/api_method_response/sdk_update_post_build_request.go.tpl
+    exceptions:
+      terminal_codes:
+        - BadRequestException
+        - InvalidParameter

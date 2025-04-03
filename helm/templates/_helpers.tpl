@@ -72,6 +72,7 @@ rules:
 - apiGroups:
   - apigateway.services.k8s.aws
   resources:
+  - apimethodresponses
   - integrations
   - methods
   - resources
@@ -89,6 +90,7 @@ rules:
 - apiGroups:
   - apigateway.services.k8s.aws
   resources:
+  - apimethodresponses/status
   - integrations/status
   - methods/status
   - resources/status
