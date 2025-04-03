@@ -77,6 +77,15 @@ func (p *Set) Replace(path string, desiredVal *string) {
 	})
 }
 
+// Add adds a patch operation to this set for adding a value at the specified path.
+func (p *Set) Add(path string, desiredVal *string) {
+	p.patchOps = append(p.patchOps, &apigatewaytypes.PatchOperation{
+		Op:    apigatewaytypes.OpAdd,
+		Path:  aws.String(path),
+		Value: desiredVal,
+	})
+}
+
 // Remove adds a patch operation to this set for removing the specified path.
 func (p *Set) Remove(path string) {
 	p.patchOps = append(p.patchOps, &apigatewaytypes.PatchOperation{
