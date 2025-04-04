@@ -4,7 +4,7 @@
 # not use this file except in compliance with the License. A copy of the
 # License is located at
 #
-#	 http://aws.amazon.com/apache2.0/
+# http://aws.amazon.com/apache2.0/
 #
 # or in the "license" file accompanying this file. This file is distributed
 # on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
@@ -37,7 +37,7 @@ def apigateway_client():
     return boto3.client(SERVICE_NAME)
 
 
-@pytest.fixture
+@pytest.fixture(scope='module')
 def simple_resource(simple_rest_api, apigateway_client) -> Tuple[k8s.CustomResourceReference, Dict, Dict, Dict]:
     resource_name = random_suffix_name('simple-resource', 32)
 
@@ -57,8 +57,20 @@ def simple_resource(simple_rest_api, apigateway_client) -> Tuple[k8s.CustomResou
         CRD_GROUP, CRD_VERSION, RESOURCE_RESOURCE_PLURAL,
         resource_name, namespace='default',
     )
-    k8s.create_custom_resource(ref, resource_data)
-    cr = k8s.wait_resource_consumed_by_controller(ref, wait_periods=15)
+
+    # Add retry logic for rate limits
+    try:
+        k8s.create_custom_resource(ref, resource_data)
+    except Exception as e:
+        if "TooManyRequests" in str(e):
+            logging.warning(
+                "Hit rate limit, waiting 30 seconds before retrying...")
+            time.sleep(30)
+            k8s.create_custom_resource(ref, resource_data)
+        else:
+            raise
+
+    cr = k8s.wait_resource_consumed_by_controller(ref, wait_periods=30)
 
     assert cr is not None
     assert cr['status']['id'] is not None
@@ -72,7 +84,8 @@ def simple_resource(simple_rest_api, apigateway_client) -> Tuple[k8s.CustomResou
 
     _, deleted = k8s.delete_custom_resource(ref, 3, 10)
     assert deleted
-    wait_until_deleted(partial(apigateway_client.get_resource, **resource_query))
+    wait_until_deleted(
+        partial(apigateway_client.get_resource, **resource_query))
 
 
 @service_marker
@@ -80,7 +93,8 @@ def simple_resource(simple_rest_api, apigateway_client) -> Tuple[k8s.CustomResou
 class TestResource:
     def test_create_update_resource(self, simple_resource, apigateway_client):
         (ref, cr, _, resource_query) = simple_resource
-        assert safe_get(partial(apigateway_client.get_resource, **resource_query)) is not None
+        assert safe_get(partial(apigateway_client.get_resource,
+                        **resource_query)) is not None
 
         updates = {
             'spec': {
