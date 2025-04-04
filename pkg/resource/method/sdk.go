@@ -816,10 +816,7 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 		return false
 	}
 	switch terminalErr.ErrorCode() {
-	case "BadRequestException",
-		"ConflictException",
-		"NotFoundException",
-		"InvalidParameter":
+	case "InvalidParameter":
 		return true
 	default:
 		return false

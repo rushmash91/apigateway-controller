@@ -42,32 +42,18 @@ func updateMethodInput(desired, latest *resource, input *svcsdk.UpdateMethodInpu
 		patchSet.Replace("/authorizerId", desiredSpec.AuthorizerID)
 	}
 	if delta.DifferentAt("Spec.APIKeyRequired") {
-		var val *string
 		if desiredSpec.APIKeyRequired != nil {
-			val = aws.String(strconv.FormatBool(*desiredSpec.APIKeyRequired))
+			val := aws.String(strconv.FormatBool(*desiredSpec.APIKeyRequired))
+			patchSet.Replace("/apiKeyRequired", val)
 		}
-		patchSet.Replace("/apiKeyRequired", val)
 	}
 	if delta.DifferentAt("Spec.OperationName") {
 		patchSet.Replace("/operationName", desiredSpec.OperationName)
 	}
 
 	if delta.DifferentAt("Spec.RequestParameters") {
-		latestMap := make(map[string]*string)
-		desiredMap := make(map[string]*string)
-
-		for k, v := range latestSpec.RequestParameters {
-			if v != nil {
-				val := aws.String(strconv.FormatBool(*v))
-				latestMap[k] = val
-			}
-		}
-		for k, v := range desiredSpec.RequestParameters {
-			if v != nil {
-				val := aws.String(strconv.FormatBool(*v))
-				desiredMap[k] = val
-			}
-		}
+		latestMap := convertBoolMapToStringMap(latestSpec.RequestParameters)
+		desiredMap := convertBoolMapToStringMap(desiredSpec.RequestParameters)
 		patchSet.ForMap("/requestParameters", latestMap, desiredMap, true)
 	}
 
@@ -80,4 +66,15 @@ func updateMethodInput(desired, latest *resource, input *svcsdk.UpdateMethodInpu
 	}
 
 	input.PatchOperations = patchSet.GetPatchOperations()
+}
+
+func convertBoolMapToStringMap(requestParameters map[string]*bool) map[string]*string {
+	requestParametersMap := make(map[string]*string)
+	for k, v := range requestParameters {
+		if v != nil {
+			val := aws.String(strconv.FormatBool(*v))
+			requestParametersMap[k] = val
+		}
+	}
+	return requestParametersMap
 }

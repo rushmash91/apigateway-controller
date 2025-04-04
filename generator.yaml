@@ -228,9 +228,6 @@ resources:
         template_path: hooks/method/sdk_update_post_build_request.go.tpl
     exceptions:
       terminal_codes:
-        - BadRequestException
-        - ConflictException
-        - NotFoundException
         - InvalidParameter
     tags:
       ignore: true
