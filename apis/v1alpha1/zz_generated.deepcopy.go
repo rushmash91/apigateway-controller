@@ -140,7 +140,7 @@ func (in *APIKeySpec) DeepCopyInto(out *APIKeySpec) {
 	}
 	if in.Value != nil {
 		in, out := &in.Value, &out.Value
-		*out = new(string)
+		*out = new(corev1alpha1.SecretKeyReference)
 		**out = **in
 	}
 }

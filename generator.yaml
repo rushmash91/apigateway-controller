@@ -28,6 +28,10 @@ ignore:
     - Resource.ResourceMethods
     - CreateResourceOutput.ResourceMethods
     - GetApiKeyInput.IncludeValue
+    - GetApiKeyOutput.Value
+    - CreateApiKeyOutput.Value
+    - UpdateApiKeyInput.Value
+    - UpdateApiKeyOutput.Value
     - CreateApiKeyOutput.StageKeys
     - UpdateApiKeyOutput.StageKeys
     - GetApiKeyOutput.StageKeys
@@ -212,6 +216,8 @@ resources:
         is_required: true
       StageKeys:
         list_of: StageKey
+      Value:
+        is_secret: true
     exceptions:
       terminal_codes:
         - BadRequestException
@@ -232,11 +238,9 @@ resources:
     hooks:
       sdk_update_post_build_request:
         template_path: hooks/api_key/sdk_update_post_build_request.go.tpl
-      sdk_read_one_post_build_request:
-        template_path: hooks/api_key/sdk_read_one_post_build_request.go.tpl
       sdk_read_one_post_request:
         template_path: hooks/api_key/sdk_read_one_post_request.go.tpl
       sdk_create_post_request:
-        template_path: hooks/api_key/sdk_create_post_request.go.tpl
+        template_path: hooks/api_key/sdk_update_post_request.go.tpl
       sdk_update_post_request:
         template_path: hooks/api_key/sdk_update_post_request.go.tpl

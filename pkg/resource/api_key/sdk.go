@@ -74,7 +74,6 @@ func (rm *resourceManager) sdkFind(
 	if err != nil {
 		return nil, err
 	}
-	input.IncludeValue = aws.Bool(true)
 
 	var resp *svcsdk.GetApiKeyOutput
 	resp, err = rm.sdkapi.GetApiKey(ctx, input)
@@ -144,11 +143,6 @@ func (rm *resourceManager) sdkFind(
 	} else {
 		ko.Spec.Tags = nil
 	}
-	if resp.Value != nil {
-		ko.Spec.Value = resp.Value
-	} else {
-		ko.Spec.Value = nil
-	}
 
 	rm.setStatusDefaults(ko)
 	return &resource{ko}, nil
@@ -194,7 +188,7 @@ func (rm *resourceManager) sdkCreate(
 	if err != nil {
 		return nil, err
 	}
-	
+
 	var resp *svcsdk.CreateApiKeyOutput
 	_ = resp
 	resp, err = rm.sdkapi.CreateApiKey(ctx, input)
@@ -259,11 +253,6 @@ func (rm *resourceManager) sdkCreate(
 	} else {
 		ko.Spec.Tags = nil
 	}
-	if resp.Value != nil {
-		ko.Spec.Value = resp.Value
-	} else {
-		ko.Spec.Value = nil
-	}
 
 	rm.setStatusDefaults(ko)
 	return &resource{ko}, nil
@@ -310,7 +299,13 @@ func (rm *resourceManager) newCreateRequestPayload(
 		res.Tags = aws.ToStringMap(r.ko.Spec.Tags)
 	}
 	if r.ko.Spec.Value != nil {
-		res.Value = r.ko.Spec.Value
+		tmpSecret, err := rm.rr.SecretValueFromReference(ctx, r.ko.Spec.Value)
+		if err != nil {
+			return nil, ackrequeue.Needed(err)
+		}
+		if tmpSecret != "" {
+			res.Value = aws.String(tmpSecret)
+		}
 	}
 
 	return res, nil
@@ -398,11 +393,6 @@ func (rm *resourceManager) sdkUpdate(
 		ko.Spec.Tags = aws.StringMap(resp.Tags)
 	} else {
 		ko.Spec.Tags = nil
-	}
-	if resp.Value != nil {
-		ko.Spec.Value = resp.Value
-	} else {
-		ko.Spec.Value = nil
 	}
 
 	rm.setStatusDefaults(ko)

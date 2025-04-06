@@ -49,7 +49,7 @@ type APIKeySpec struct {
 	// tag value can be up to 256 characters.
 	Tags map[string]*string `json:"tags,omitempty"`
 	// Specifies a value of the API key.
-	Value *string `json:"value,omitempty"`
+	Value *ackv1alpha1.SecretKeyReference `json:"value,omitempty"`
 }
 
 // APIKeyStatus defines the observed state of APIKey
