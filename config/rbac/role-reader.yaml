@@ -10,8 +10,8 @@ rules:
   - apigateway.services.k8s.aws
   resources:
   - apiintegrationresponses
-  - apimethodresponses
   - apikeys
+  - apimethodresponses
   - integrations
   - methods
   - resources

@@ -14,6 +14,7 @@
 package api_key
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -22,6 +23,7 @@ import (
 	svcsdk "github.com/aws/aws-sdk-go-v2/service/apigateway"
 	svcsdktypes "github.com/aws/aws-sdk-go-v2/service/apigateway/types"
 
+	"github.com/aws-controllers-k8s/apigateway-controller/pkg/tags"
 	"github.com/aws-controllers-k8s/apigateway-controller/pkg/util/patch"
 )
 
@@ -45,7 +47,6 @@ func updateApiKeyInput(desired *resource, input *svcsdk.UpdateApiKeyInput, delta
 
 	// Handle StageKeys with add/remove operations
 	if delta.DifferentAt("Spec.StageKeys") && desiredSpec.StageKeys != nil {
-		// Convert StageKey objects to strings in the format "restApiId/stageName"
 		for _, sk := range desiredSpec.StageKeys {
 			if sk.RestAPIID != nil && sk.StageName != nil {
 				// Format: restApiId/stageName
@@ -64,4 +65,19 @@ func updateApiKeyInput(desired *resource, input *svcsdk.UpdateApiKeyInput, delta
 
 	patchOps := patchSet.GetPatchOperations()
 	input.PatchOperations = append(patchOps, stageKeyPatches...)
+}
+
+// syncApiKeyTags synchronizes tags between desired and latest resources
+func updateTags(
+	ctx context.Context,
+	rm *resourceManager,
+	desired *resource,
+	latest *resource,
+) error {
+	resourceARN := fmt.Sprintf(
+		"arn:aws:apigateway:%s::/apikeys/%s",
+		*desired.ko.Status.ACKResourceMetadata.Region,
+		*desired.ko.Status.ID,
+	)
+	return tags.SyncTags(ctx, rm.sdkapi, rm.metrics, resourceARN, desired.ko.Spec.Tags, latest.ko.Spec.Tags)
 }

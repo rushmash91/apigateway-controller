@@ -11,40 +11,7 @@ from e2e.bootstrap_resources import get_bootstrap_resources
 from e2e.service_bootstrap import APIGW
 
 API_KEY_RESOURCE_PLURAL = "apikeys"
-
 MAX_WAIT_FOR_SYNCED_MINUTES = 10
-
-
-@pytest.fixture
-def simple_rest_api(apigateway_client) -> Tuple[k8s.CustomResourceReference, Dict]:
-    rest_api_name = random_suffix_name("simple-rest-api", 32)
-
-    replacements = REPLACEMENT_VALUES.copy()
-    replacements["REST_API_NAME"] = rest_api_name
-
-    resource_data = load_apigateway_resource(
-        "rest_api_simple",
-        additional_replacements=replacements,
-    )
-
-    ref = k8s.CustomResourceReference(
-        CRD_GROUP,
-        CRD_VERSION,
-        "restapis",
-        rest_api_name,
-        namespace="default",
-    )
-    k8s.create_custom_resource(ref, resource_data)
-    cr = k8s.wait_resource_consumed_by_controller(ref)
-
-    assert cr is not None
-    assert k8s.get_resource_exists(ref)
-
-    yield ref, cr
-
-    # Delete the rest API
-    _, deleted = k8s.delete_custom_resource(ref, 3, 10)
-    assert deleted
 
 
 @pytest.fixture
@@ -126,42 +93,32 @@ class TestAPIKey:
     def test_create_update_api_key(self, simple_api_key, apigateway_client):
         (ref, cr) = simple_api_key
 
-        # Check that the API key was created
         api_key_id = cr["status"]["id"]
         assert api_key_id is not None
 
-        # Get the API key details from AWS
         aws_api_key = apigateway_client.get_api_key(
             apiKey=api_key_id,
             includeValue=True
         )
 
-        # Verify the API key has the expected values
         assert aws_api_key["name"] == cr["spec"]["name"]
         assert aws_api_key["description"] == "API Key for testing"
         assert aws_api_key["enabled"] == True
 
-        # Check that the tags were set correctly
         assert aws_api_key["tags"]["k1"] == "v1"
         assert aws_api_key["tags"]["k2"] == "v2"
 
-        # Create an updated resource
+
         update_description = "Updated API key description"
         update_tags = {"k1": "updated-v1", "k3": "v3"}
 
-        # Update the CR with new values
         cr["spec"]["description"] = update_description
         cr["spec"]["tags"] = update_tags
         cr["spec"]["enabled"] = False
 
-        # Update the CR
         k8s.patch_custom_resource(ref, cr)
-        time.sleep(5)  # Give the controller time to process
-
-        # Get the updated CR
         updated_cr = k8s.wait_resource_consumed_by_controller(ref)
 
-        # Verify AWS resource was updated
         updated_aws_api_key = apigateway_client.get_api_key(
             apiKey=api_key_id,
             includeValue=True
