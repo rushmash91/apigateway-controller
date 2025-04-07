@@ -30,6 +30,8 @@ from .rest_api_test import simple_rest_api
 
 RESOURCE_RESOURCE_PLURAL = "resources"
 MODIFY_WAIT_AFTER_SECONDS = 60
+MAX_RETRIES = 3
+WAIT_TIME = 30
 
 
 @pytest.fixture(scope='module')
@@ -37,7 +39,7 @@ def apigateway_client():
     return boto3.client(SERVICE_NAME)
 
 
-@pytest.fixture
+@pytest.fixture(scope='module')
 def simple_resource(simple_rest_api, apigateway_client) -> Tuple[k8s.CustomResourceReference, Dict, Dict, Dict]:
     resource_name = random_suffix_name('simple-resource', 32)
 
@@ -57,9 +59,9 @@ def simple_resource(simple_rest_api, apigateway_client) -> Tuple[k8s.CustomResou
         CRD_GROUP, CRD_VERSION, RESOURCE_RESOURCE_PLURAL,
         resource_name, namespace='default',
     )
-    k8s.create_custom_resource(ref, resource_data)
-    cr = k8s.wait_resource_consumed_by_controller(ref, wait_periods=15)
 
+    k8s.create_custom_resource(ref, resource_data)
+    cr = k8s.wait_resource_consumed_by_controller(ref, wait_periods=30)
     assert cr is not None
     assert cr['status']['id'] is not None
     assert k8s.get_resource_exists(ref)
