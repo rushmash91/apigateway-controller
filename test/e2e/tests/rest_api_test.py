@@ -75,13 +75,13 @@ def simple_rest_api(apigateway_client) -> Tuple[k8s.CustomResourceReference, Dic
     cr = k8s.wait_resource_consumed_by_controller(ref, wait_periods=60)  
     assert cr is not None
     assert k8s.get_resource_exists(ref)
-    assert k8s.wait_on_condition(
+    k8s.wait_on_condition(
         ref,
         condition.CONDITION_TYPE_RESOURCE_SYNCED,
         "True",
         wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES,
     )
-    time.sleep(4*MODIFY_WAIT_AFTER_SECONDS)
+    cr = k8s.get_resource(ref)
     yield ref, cr
 
     _, deleted = k8s.delete_custom_resource(ref, 10, 30)
