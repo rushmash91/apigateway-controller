@@ -214,6 +214,9 @@
     "watchSelectors": {
       "type": "string"
     },
+    "reconcileResources": {
+      "type": "string"
+    },
     "resourceTags": {
       "type": "array",
       "items": {

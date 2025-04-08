@@ -114,6 +114,11 @@ watchNamespace: ""
 # You can set multiple labelsSelectors by providing a comma separated list of a=b arguments. e.g "label1=value1,label2=value2" 
 watchSelectors: ""
 
+# Set the value of reconcileResources to specify which resource kinds to reconcile.
+# You can set multiple resource kinds by providing a comma separated list. e.g "Kind1,Kind2"
+# If unspecified, all resources will be reconciled.
+reconcileResources: ""
+
 resourceTags:
   # Configures the ACK service controller to always set key/value pairs tags on
   # resources that it manages.

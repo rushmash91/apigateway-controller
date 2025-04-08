@@ -18,6 +18,7 @@ package main
 import (
 	"context"
 	"os"
+	"strings"
 
 	ec2apitypes "github.com/aws-controllers-k8s/ec2-controller/apis/v1alpha1"
 	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
@@ -117,6 +118,14 @@ func main() {
 		)
 		os.Exit(1)
 	}
+	reconcileResources, err := ackCfg.GetReconcileResources()
+	if err != nil {
+		setupLog.Error(
+			err, "Unable to parse reconcile resources.",
+			"aws.service", awsServiceAlias,
+		)
+		os.Exit(1)
+	}
 	mgr, err := ctrlrt.NewManager(ctrlrt.GetConfigOrDie(), ctrlrt.Options{
 		Scheme: scheme,
 		Cache: ctrlrtcache.Options{
@@ -166,6 +175,31 @@ func main() {
 	).WithPrometheusRegistry(
 		ctrlrtmetrics.Registry,
 	)
+
+	if len(reconcileResources) > 0 {
+		setupLog.Info(
+			"filtering resource reconcilers based on RECONCILE_RESOURCES",
+			"resources", strings.Join(reconcileResources, ","),
+		)
+		// Create a filtered list of resource manager factories
+		var filteredFactories []acktypes.AWSResourceManagerFactory
+		for _, factory := range svcresource.GetManagerFactories() {
+			rd := factory.ResourceDescriptor()
+			gvk := rd.GroupVersionKind()
+			kind := strings.ToLower(gvk.Kind)
+
+			// Check if this kind is in the reconcile resources list
+			for _, resourceKind := range reconcileResources {
+				if strings.EqualFold(resourceKind, kind) {
+					filteredFactories = append(filteredFactories, factory)
+					break
+				}
+			}
+		}
+
+		// Replace the resource manager factories with the filtered list
+		sc = sc.WithResourceManagerFactories(filteredFactories)
+	}
 
 	if ackCfg.EnableWebhookServer {
 		webhooks := ackrtwebhook.GetWebhooks()
