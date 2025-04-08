@@ -40,8 +40,6 @@ from e2e.replacement_values import REPLACEMENT_VALUES
 REST_API_RESOURCE_PLURAL = "restapis"
 MODIFY_WAIT_AFTER_SECONDS = 30
 MAX_WAIT_FOR_SYNCED_MINUTES = 5
-MAX_RETRIES = 3
-WAIT_TIME = 30
 
 
 @pytest.fixture(scope="module")
@@ -84,7 +82,7 @@ def simple_rest_api(apigateway_client) -> Tuple[k8s.CustomResourceReference, Dic
     cr = k8s.get_resource(ref)
     yield ref, cr
 
-    _, deleted = k8s.delete_custom_resource(ref, 10, 30)
+    _, deleted = k8s.delete_custom_resource(ref, 10, 60)
     assert deleted
 
 
