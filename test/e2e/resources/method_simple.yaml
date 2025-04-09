@@ -1,0 +1,15 @@
+apiVersion: apigateway.services.k8s.aws/v1alpha1
+kind: Method
+metadata:
+  name: $METHOD_NAME
+spec:
+  httpMethod: GET
+  resourceRef:
+    from:
+      name: $RESOURCE_REF_NAME
+  restAPIRef:
+    from:
+      name: $REST_API_REF_NAME
+  authorizationType: NONE
+  apiKeyRequired: false
+  operationName: NewTestOperation 

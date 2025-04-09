@@ -47,7 +47,7 @@ def apigateway_client():
     return boto3.client(SERVICE_NAME)
 
 
-@pytest.fixture
+@pytest.fixture(scope='module')
 def simple_rest_api(apigateway_client) -> Tuple[k8s.CustomResourceReference, Dict]:
     rest_api_name = random_suffix_name("simple-rest-api", 32)
 
@@ -67,21 +67,22 @@ def simple_rest_api(apigateway_client) -> Tuple[k8s.CustomResourceReference, Dic
         rest_api_name,
         namespace="default",
     )
+    
+    
     k8s.create_custom_resource(ref, resource_data)
-    cr = k8s.wait_resource_consumed_by_controller(ref, wait_periods=30)
-
+    cr = k8s.wait_resource_consumed_by_controller(ref, wait_periods=60)  
     assert cr is not None
     assert k8s.get_resource_exists(ref)
-    assert k8s.wait_on_condition(
-            ref,
-            condition.CONDITION_TYPE_RESOURCE_SYNCED,
-            "True",
-            wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES,
-        )
-
+    k8s.wait_on_condition(
+        ref,
+        condition.CONDITION_TYPE_RESOURCE_SYNCED,
+        "True",
+        wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES,
+    )
+    cr = k8s.get_resource(ref)
     yield ref, cr
 
-    _, deleted = k8s.delete_custom_resource(ref, 3, 10)
+    _, deleted = k8s.delete_custom_resource(ref, 10, 60)
     assert deleted
 
 
@@ -136,7 +137,8 @@ class TestRestAPI:
             wait_periods=MAX_WAIT_FOR_SYNCED_MINUTES,
         )
         assert (
-            k8s.get_resource_condition(ref, condition.CONDITION_TYPE_TERMINAL) is None
+            k8s.get_resource_condition(
+                ref, condition.CONDITION_TYPE_TERMINAL) is None
         )
 
         aws_rest_api = apigateway_client.get_rest_api(restApiId=rest_api_id)

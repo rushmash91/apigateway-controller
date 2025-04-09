@@ -94,6 +94,7 @@ func (rm *resourceManager) sdkFind(
 	} else {
 		r.ko.Spec.StageKeys = nil
 	}
+
 	rm.metrics.RecordAPICall("READ_ONE", "GetApiKey", err)
 	if err != nil {
 		var awsErr smithy.APIError
@@ -145,17 +146,6 @@ func (rm *resourceManager) sdkFind(
 	}
 
 	rm.setStatusDefaults(ko)
-
-	// fetch tags
-	if r.ko.Status.ID != nil {
-		resourceARN := string(*r.ko.Status.ACKResourceMetadata.ARN)
-		tags, err := rm.fetchCurrentTags(ctx, &resourceARN)
-		if err != nil {
-			return nil, err
-		}
-		r.ko.Spec.Tags = aws.StringMap(tags)
-	}
-
 	return &resource{ko}, nil
 }
 
@@ -340,6 +330,17 @@ func (rm *resourceManager) sdkUpdate(
 		return nil, err
 	}
 	updateApiKeyInput(desired, input, delta)
+
+	// Handle tag updates separately through TagResource/UntagResource APIs
+	if delta.DifferentAt("Spec.Tags") {
+		if err := updateTags(ctx, rm, desired, latest); err != nil {
+			return nil, err
+		}
+	}
+
+	if !delta.DifferentExcept("Spec.Tags") {
+		return desired, nil
+	}
 
 	var resp *svcsdk.UpdateApiKeyOutput
 	_ = resp

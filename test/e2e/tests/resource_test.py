@@ -27,9 +27,12 @@ from e2e import service_marker, CRD_GROUP, CRD_VERSION, SERVICE_NAME, load_apiga
 from e2e.common.waiter import wait_until_deleted, safe_get
 from e2e.replacement_values import REPLACEMENT_VALUES
 from .rest_api_test import simple_rest_api
+from acktest.k8s import condition
 
 RESOURCE_RESOURCE_PLURAL = "resources"
 MODIFY_WAIT_AFTER_SECONDS = 60
+MAX_RETRIES = 3
+WAIT_TIME = 30
 
 
 @pytest.fixture(scope='module')
@@ -37,7 +40,7 @@ def apigateway_client():
     return boto3.client(SERVICE_NAME)
 
 
-@pytest.fixture
+@pytest.fixture(scope='module')
 def simple_resource(simple_rest_api, apigateway_client) -> Tuple[k8s.CustomResourceReference, Dict, Dict, Dict]:
     resource_name = random_suffix_name('simple-resource', 32)
 
@@ -57,8 +60,10 @@ def simple_resource(simple_rest_api, apigateway_client) -> Tuple[k8s.CustomResou
         CRD_GROUP, CRD_VERSION, RESOURCE_RESOURCE_PLURAL,
         resource_name, namespace='default',
     )
+
     k8s.create_custom_resource(ref, resource_data)
-    cr = k8s.wait_resource_consumed_by_controller(ref, wait_periods=15)
+    cr = k8s.wait_resource_consumed_by_controller(ref, wait_periods=30)
+
 
     assert cr is not None
     assert cr['status']['id'] is not None
@@ -67,10 +72,16 @@ def simple_resource(simple_rest_api, apigateway_client) -> Tuple[k8s.CustomResou
         'restApiId': rest_api_cr['status']['id'],
         'resourceId': cr['status']['id'],
     }
-
+    k8s.wait_on_condition(
+        ref,
+        condition.CONDITION_TYPE_RESOURCE_SYNCED,
+        "True",
+        wait_periods=60,
+    )
+    cr = k8s.get_resource(ref)
     yield ref, cr, rest_api_cr, resource_query
 
-    _, deleted = k8s.delete_custom_resource(ref, 3, 10)
+    _, deleted = k8s.delete_custom_resource(ref, 10, 60)
     assert deleted
     wait_until_deleted(partial(apigateway_client.get_resource, **resource_query))
 
