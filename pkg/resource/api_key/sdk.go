@@ -77,23 +77,13 @@ func (rm *resourceManager) sdkFind(
 
 	var resp *svcsdk.GetApiKeyOutput
 	resp, err = rm.sdkapi.GetApiKey(ctx, input)
+
 	if resp.StageKeys != nil {
-		stageKeys := make([]*svcapitypes.StageKey, 0, len(resp.StageKeys))
-		for _, stageKeyStr := range resp.StageKeys {
-			parts := strings.Split(stageKeyStr, "/")
-			if len(parts) == 2 {
-				restAPIID := parts[0]
-				stageName := parts[1]
-				stageKeys = append(stageKeys, &svcapitypes.StageKey{
-					RestAPIID: &restAPIID,
-					StageName: &stageName,
-				})
-			}
-		}
-		r.ko.Spec.StageKeys = stageKeys
+		r.ko.Spec.StageKeys = getStageKeysFromStrings(resp.StageKeys)
 	} else {
 		r.ko.Spec.StageKeys = nil
 	}
+
 	rm.metrics.RecordAPICall("READ_ONE", "GetApiKey", err)
 	if err != nil {
 		var awsErr smithy.APIError
@@ -145,17 +135,6 @@ func (rm *resourceManager) sdkFind(
 	}
 
 	rm.setStatusDefaults(ko)
-
-	// fetch tags
-	if r.ko.Status.ID != nil {
-		resourceARN := string(*r.ko.Status.ACKResourceMetadata.ARN)
-		tags, err := rm.fetchCurrentTags(ctx, &resourceARN)
-		if err != nil {
-			return nil, err
-		}
-		r.ko.Spec.Tags = aws.StringMap(tags)
-	}
-
 	return &resource{ko}, nil
 }
 
@@ -203,23 +182,13 @@ func (rm *resourceManager) sdkCreate(
 	var resp *svcsdk.CreateApiKeyOutput
 	_ = resp
 	resp, err = rm.sdkapi.CreateApiKey(ctx, input)
+
 	if resp.StageKeys != nil {
-		stageKeys := make([]*svcapitypes.StageKey, 0, len(resp.StageKeys))
-		for _, stageKeyStr := range resp.StageKeys {
-			parts := strings.Split(stageKeyStr, "/")
-			if len(parts) == 2 {
-				restAPIID := parts[0]
-				stageName := parts[1]
-				stageKeys = append(stageKeys, &svcapitypes.StageKey{
-					RestAPIID: &restAPIID,
-					StageName: &stageName,
-				})
-			}
-		}
-		desired.ko.Spec.StageKeys = stageKeys
+		desired.ko.Spec.StageKeys = getStageKeysFromStrings(resp.StageKeys)
 	} else {
 		desired.ko.Spec.StageKeys = nil
 	}
+
 	rm.metrics.RecordAPICall("CREATE", "CreateApiKey", err)
 	if err != nil {
 		return nil, err
@@ -335,32 +304,35 @@ func (rm *resourceManager) sdkUpdate(
 	defer func() {
 		exit(err)
 	}()
+
+	// Handle tag updates separately through TagResource/UntagResource APIs
+	if delta.DifferentAt("Spec.Tags") {
+		if err := updateTags(ctx, rm, desired, latest); err != nil {
+			return nil, err
+		}
+	}
+
+	if !delta.DifferentExcept("Spec.Tags") {
+		return desired, nil
+	}
+
 	input, err := rm.newUpdateRequestPayload(ctx, desired, delta)
 	if err != nil {
 		return nil, err
 	}
+
 	updateApiKeyInput(desired, input, delta)
 
 	var resp *svcsdk.UpdateApiKeyOutput
 	_ = resp
 	resp, err = rm.sdkapi.UpdateApiKey(ctx, input)
+
 	if resp.StageKeys != nil {
-		stageKeys := make([]*svcapitypes.StageKey, 0, len(resp.StageKeys))
-		for _, stageKeyStr := range resp.StageKeys {
-			parts := strings.Split(stageKeyStr, "/")
-			if len(parts) == 2 {
-				restAPIID := parts[0]
-				stageName := parts[1]
-				stageKeys = append(stageKeys, &svcapitypes.StageKey{
-					RestAPIID: &restAPIID,
-					StageName: &stageName,
-				})
-			}
-		}
-		desired.ko.Spec.StageKeys = stageKeys
+		desired.ko.Spec.StageKeys = getStageKeysFromStrings(resp.StageKeys)
 	} else {
 		desired.ko.Spec.StageKeys = nil
 	}
+
 	rm.metrics.RecordAPICall("UPDATE", "UpdateApiKey", err)
 	if err != nil {
 		return nil, err
@@ -570,8 +542,6 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 	}
 	switch terminalErr.ErrorCode() {
 	case "BadRequestException",
-		"ConflictException",
-		"NotFoundException",
 		"InvalidParameter":
 		return true
 	default:

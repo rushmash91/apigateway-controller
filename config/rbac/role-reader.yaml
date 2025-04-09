@@ -9,8 +9,11 @@ rules:
 - apiGroups:
   - apigateway.services.k8s.aws
   resources:
+  - apiintegrationresponses
   - apikeys
+  - apimethodresponses
   - integrations
+  - methods
   - resources
   - restapis
   - stages

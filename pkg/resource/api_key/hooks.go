@@ -19,18 +19,17 @@ import (
 	"strings"
 
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
-	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	svcsdk "github.com/aws/aws-sdk-go-v2/service/apigateway"
-	svcsdktypes "github.com/aws/aws-sdk-go-v2/service/apigateway/types"
 
+	svcapitypes "github.com/aws-controllers-k8s/apigateway-controller/apis/v1alpha1"
+	"github.com/aws-controllers-k8s/apigateway-controller/pkg/tags"
 	"github.com/aws-controllers-k8s/apigateway-controller/pkg/util/patch"
 )
 
 func updateApiKeyInput(desired *resource, input *svcsdk.UpdateApiKeyInput, delta *ackcompare.Delta) {
 	desiredSpec := desired.ko.Spec
 	var patchSet patch.Set
-	var stageKeyPatches []svcsdktypes.PatchOperation
 
 	if delta.DifferentAt("Spec.Name") {
 		patchSet.Replace("/name", desiredSpec.Name)
@@ -45,152 +44,89 @@ func updateApiKeyInput(desired *resource, input *svcsdk.UpdateApiKeyInput, delta
 		patchSet.Replace("/customerId", desiredSpec.CustomerID)
 	}
 
-	// Tags are managed through separate TagResource/UntagResource APIs,
-	// not through patch operations in UpdateApiKey
-
 	// Handle StageKeys with add/remove operations
 	if delta.DifferentAt("Spec.StageKeys") && desiredSpec.StageKeys != nil {
-		// Convert StageKey objects to strings in the format "restApiId/stageName"
-		for _, sk := range desiredSpec.StageKeys {
-			if sk.RestAPIID != nil && sk.StageName != nil {
-				// Format: restApiId/stageName
-				stageKeyStr := fmt.Sprintf("%s/%s", *sk.RestAPIID, *sk.StageName)
-				// Encode the path - replace / with ~1 as per JSON Patch spec
-				encodedStageKey := strings.Replace(stageKeyStr, "/", "~1", -1)
-				// For stages, we need to use add operation to /stages/{encoded-stage-key}
-				stageKeyPatches = append(stageKeyPatches, svcsdktypes.PatchOperation{
-					Op:    svcsdktypes.OpAdd,
-					Path:  aws.String(fmt.Sprintf("/stages/%s", encodedStageKey)),
-					Value: aws.String(""),
-				})
+		updateStageKeyPatches(&patchSet, desiredSpec.StageKeys, desiredSpec.StageKeys)
+	}
+
+	input.PatchOperations = patchSet.GetPatchOperations()
+}
+
+// updateStageKeyPatches adds patch operations for stage keys, handling both additions and removals.
+// Each StageKey represents a REST API stage in the format "restApiId/stageName".
+// The path needs to be JSON Pointer encoded (RFC 6901) where "/" becomes "~1"
+// to avoid conflicts with path separators.
+//
+// Example:
+//
+//	StageKey{RestAPIID: "abc123", StageName: "prod"} becomes "/stages/abc123~1prod"
+func updateStageKeyPatches(patchSet *patch.Set, latest, desired []*svcapitypes.StageKey) {
+	latestMap := make(map[string]bool)
+	desiredMap := make(map[string]bool)
+
+	// Build desired stage keys map
+	for _, sk := range desired {
+		if sk.RestAPIID != nil && sk.StageName != nil {
+			key := fmt.Sprintf("%s/%s", *sk.RestAPIID, *sk.StageName)
+			desiredMap[key] = true
+		}
+	}
+
+	// Build latest stage keys map (only for those that are still desired)
+	for _, sk := range latest {
+		if sk.RestAPIID != nil && sk.StageName != nil {
+			key := fmt.Sprintf("%s/%s", *sk.RestAPIID, *sk.StageName)
+			if desiredMap[key] {
+				latestMap[key] = true
 			}
 		}
 	}
 
-	patchOps := patchSet.GetPatchOperations()
-	input.PatchOperations = append(patchOps, stageKeyPatches...)
+	// Add new stage keys
+	for key := range desiredMap {
+		if !latestMap[key] {
+			encodedKey := strings.Replace(key, "/", "~1", -1)
+			patchSet.Add(fmt.Sprintf("/stages/%s", encodedKey), aws.String(""))
+		}
+	}
+
+	// Remove stage keys that are no longer desired
+	for _, sk := range latest {
+		if sk.RestAPIID != nil && sk.StageName != nil {
+			key := fmt.Sprintf("%s/%s", *sk.RestAPIID, *sk.StageName)
+			if !desiredMap[key] {
+				encodedKey := strings.Replace(key, "/", "~1", -1)
+				patchSet.Remove(fmt.Sprintf("/stages/%s", encodedKey))
+			}
+		}
+	}
 }
 
-// syncTags keeps tags in sync by calling TagResource and UntagResource APIs
-func (rm *resourceManager) syncTags(
+// syncApiKeyTags synchronizes tags between desired and latest resources
+func updateTags(
 	ctx context.Context,
+	rm *resourceManager,
 	desired *resource,
 	latest *resource,
-) (err error) {
-	rlog := ackrtlog.FromContext(ctx)
-	exit := rlog.Trace("rm.syncTags")
-	defer func() {
-		exit(err)
-	}()
-
-	if latest.ko.Status.ACKResourceMetadata == nil || latest.ko.Status.ACKResourceMetadata.ARN == nil {
-		return fmt.Errorf("resource ARN is nil")
-	}
-
-	resourceARN := aws.String(string(*latest.ko.Status.ACKResourceMetadata.ARN))
-
-	desiredTagsMap := desired.ko.Spec.Tags
-	latestTagsMap := latest.ko.Spec.Tags
-
-	desiredTags, _ := convertToOrderedACKTags(desiredTagsMap)
-	latestTags, _ := convertToOrderedACKTags(latestTagsMap)
-
-	added, updated, removed := ackcompare.GetTagsDifference(latestTags, desiredTags)
-
-	// Combine added and updated tags
-	toAdd := make(map[string]string)
-	for k, v := range added {
-		toAdd[k] = v
-	}
-	for k, v := range updated {
-		toAdd[k] = v
-	}
-
-	var toRemoveTagKeys []string
-	for k := range removed {
-		toRemoveTagKeys = append(toRemoveTagKeys, k)
-	}
-
-	// Remove tags using UntagResource API:
-	if len(toRemoveTagKeys) > 0 {
-		rlog.Debug("removing tags from resource", "tags", toRemoveTagKeys)
-		_, err = rm.sdkapi.UntagResource(
-			ctx,
-			&svcsdk.UntagResourceInput{
-				ResourceArn: resourceARN,
-				TagKeys:     toRemoveTagKeys,
-			},
-		)
-		rm.metrics.RecordAPICall("UPDATE", "UntagResource", err)
-		if err != nil {
-			return err
-		}
-	}
-
-	// Add tags using TagResource API
-	if len(toAdd) > 0 {
-		rlog.Debug("adding tags to resource", "tags", toAdd)
-		_, err = rm.sdkapi.TagResource(
-			ctx,
-			&svcsdk.TagResourceInput{
-				ResourceArn: resourceARN,
-				Tags:        toAdd,
-			},
-		)
-		rm.metrics.RecordAPICall("UPDATE", "TagResource", err)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func compareTags(
-	delta *ackcompare.Delta,
-	a *resource,
-	b *resource,
-) {
-	if len(a.ko.Spec.Tags) != len(b.ko.Spec.Tags) {
-		delta.Add("Spec.Tags", a.ko.Spec.Tags, b.ko.Spec.Tags)
-	} else if len(a.ko.Spec.Tags) > 0 {
-		// Convert map[string]*string to acktags.Tags for GetTagsDifference
-		aTagsConverted, _ := convertToOrderedACKTags(a.ko.Spec.Tags)
-		bTagsConverted, _ := convertToOrderedACKTags(b.ko.Spec.Tags)
-
-		added, updated, removed := ackcompare.GetTagsDifference(bTagsConverted, aTagsConverted)
-		if len(added) != 0 || len(updated) != 0 || len(removed) != 0 {
-			delta.Add("Spec.Tags", a.ko.Spec.Tags, b.ko.Spec.Tags)
-		}
-	}
-}
-
-// fetchCurrentTags returns the current tags for the resource
-// using the GetTags API: GET /tags/resource_arn
-func (rm *resourceManager) fetchCurrentTags(
-	ctx context.Context,
-	resourceARN *string,
-) (map[string]string, error) {
-	output, err := rm.sdkapi.GetTags(
-		ctx,
-		&svcsdk.GetTagsInput{
-			ResourceArn: resourceARN,
-		},
+) error {
+	resourceARN := fmt.Sprintf(
+		"arn:aws:apigateway:%s::/apikeys/%s",
+		*desired.ko.Status.ACKResourceMetadata.Region,
+		*desired.ko.Status.ID,
 	)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return output.Tags, nil
+	return tags.SyncTags(ctx, rm.sdkapi, rm.metrics, resourceARN, desired.ko.Spec.Tags, latest.ko.Spec.Tags)
 }
 
-// CustomResourcesDifference helps return differences in custom resources
-func (rm *resourceManager) CustomResourcesDifference(
-	a *resource,
-	b *resource,
-) *ackcompare.Delta {
-	delta := ackcompare.NewDelta()
-	compareTags(delta, a, b)
-	return delta
+// getStageKeysFromStrings converts a slice of stage key strings in the format "restAPIID/stageName"
+// to a slice of StageKey objects
+func getStageKeysFromStrings(stageKeyStrings []string) []*svcapitypes.StageKey {
+	stageKeys := make([]*svcapitypes.StageKey, 0, len(stageKeyStrings))
+	for _, stageKeyStr := range stageKeyStrings {
+		parts := strings.Split(stageKeyStr, "/")
+		stageKeys = append(stageKeys, &svcapitypes.StageKey{
+			RestAPIID: &parts[0],
+			StageName: &parts[1],
+		})
+	}
+	return stageKeys
 }

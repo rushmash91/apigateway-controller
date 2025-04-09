@@ -211,33 +211,8 @@ type Integration_SDK struct {
 	// MOCK for testing without actually invoking the backend; HTTP_PROXY for integrating
 	// with the HTTP proxy integration; AWS_PROXY for integrating with the Lambda
 	// proxy integration.
-	Type *string `json:"type_,omitempty"`
+	Type *string `json:"type,omitempty"`
 	URI  *string `json:"uri,omitempty"`
-}
-
-// Represents a client-facing interface by which the client calls the API to
-// access back-end resources. A Method resource is integrated with an Integration
-// resource. Both consist of a request and one or more responses. The method
-// request takes the client input that is passed to the back end through the
-// integration request. A method response returns the output from the back end
-// to the client through an integration response. A method request is embodied
-// in a Method resource, whereas an integration request is embodied in an Integration
-// resource. On the other hand, a method response is represented by a MethodResponse
-// resource, whereas an integration response is represented by an IntegrationResponse
-// resource.
-type Method struct {
-	APIKeyRequired      *bool     `json:"apiKeyRequired,omitempty"`
-	AuthorizationScopes []*string `json:"authorizationScopes,omitempty"`
-	AuthorizationType   *string   `json:"authorizationType,omitempty"`
-	AuthorizerID        *string   `json:"authorizerID,omitempty"`
-	HTTPMethod          *string   `json:"httpMethod,omitempty"`
-	// Represents an HTTP, HTTP_PROXY, AWS, AWS_PROXY, or Mock integration.
-	MethodIntegration  *Integration_SDK           `json:"methodIntegration,omitempty"`
-	MethodResponses    map[string]*MethodResponse `json:"methodResponses,omitempty"`
-	OperationName      *string                    `json:"operationName,omitempty"`
-	RequestModels      map[string]*string         `json:"requestModels,omitempty"`
-	RequestParameters  map[string]*bool           `json:"requestParameters,omitempty"`
-	RequestValidatorID *string                    `json:"requestValidatorID,omitempty"`
 }
 
 // Represents a method response of a given HTTP status code returned to the
@@ -268,6 +243,31 @@ type MethodSetting struct {
 type MethodSnapshot struct {
 	APIKeyRequired    *bool   `json:"apiKeyRequired,omitempty"`
 	AuthorizationType *string `json:"authorizationType,omitempty"`
+}
+
+// Represents a client-facing interface by which the client calls the API to
+// access back-end resources. A Method resource is integrated with an Integration
+// resource. Both consist of a request and one or more responses. The method
+// request takes the client input that is passed to the back end through the
+// integration request. A method response returns the output from the back end
+// to the client through an integration response. A method request is embodied
+// in a Method resource, whereas an integration request is embodied in an Integration
+// resource. On the other hand, a method response is represented by a MethodResponse
+// resource, whereas an integration response is represented by an IntegrationResponse
+// resource.
+type Method_SDK struct {
+	APIKeyRequired      *bool     `json:"apiKeyRequired,omitempty"`
+	AuthorizationScopes []*string `json:"authorizationScopes,omitempty"`
+	AuthorizationType   *string   `json:"authorizationType,omitempty"`
+	AuthorizerID        *string   `json:"authorizerID,omitempty"`
+	HTTPMethod          *string   `json:"httpMethod,omitempty"`
+	// Represents an HTTP, HTTP_PROXY, AWS, AWS_PROXY, or Mock integration.
+	MethodIntegration  *Integration_SDK           `json:"methodIntegration,omitempty"`
+	MethodResponses    map[string]*MethodResponse `json:"methodResponses,omitempty"`
+	OperationName      *string                    `json:"operationName,omitempty"`
+	RequestModels      map[string]*string         `json:"requestModels,omitempty"`
+	RequestParameters  map[string]*bool           `json:"requestParameters,omitempty"`
+	RequestValidatorID *string                    `json:"requestValidatorID,omitempty"`
 }
 
 // Represents the data structure of a method's request or response payload.

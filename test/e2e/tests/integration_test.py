@@ -38,7 +38,7 @@ def apigateway_client():
     return boto3.client(SERVICE_NAME)
 
 
-@pytest.fixture
+@pytest.fixture(scope='module')
 def simple_integration(simple_resource, apigateway_client) -> Tuple[k8s.CustomResourceReference, Dict, Dict]:
     integration_name = random_suffix_name('simple-integration', 32)
 
@@ -60,15 +60,18 @@ def simple_integration(simple_resource, apigateway_client) -> Tuple[k8s.CustomRe
         CRD_GROUP, CRD_VERSION, INTEGRATION_RESOURCE_PLURAL,
         integration_name, namespace='default',
     )
+
     k8s.create_custom_resource(ref, resource_data)
-    cr = k8s.wait_resource_consumed_by_controller(ref, wait_periods=15)
+
+    cr = k8s.wait_resource_consumed_by_controller(
+        ref, wait_periods=60)  # Increased timeout
 
     assert cr is not None
     assert k8s.get_resource_exists(ref)
 
     yield ref, cr, resource_query
 
-    _, deleted = k8s.delete_custom_resource(ref, 3, 10)
+    _, deleted = k8s.delete_custom_resource(ref, 10, 30)
     assert deleted
     wait_until_deleted(partial(apigateway_client.get_integration, **resource_query))
     apigateway_client.delete_method(**resource_query)

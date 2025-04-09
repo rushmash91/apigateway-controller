@@ -43,7 +43,7 @@ def apigateway_client():
     return boto3.client(SERVICE_NAME)
 
 
-@pytest.fixture
+@pytest.fixture(scope='module')
 def simple_stage(simple_integration, apigateway_client) -> Tuple[k8s.CustomResourceReference, Dict, str]:
     stage_name = random_suffix_name('simple-stage', 32)
     (ref, cr, resource_query) = simple_integration

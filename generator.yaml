@@ -5,6 +5,42 @@ operations:
     operation_type:
       - Create
     resource_name: Integration
+  PutMethod:
+    operation_type:
+      - Create
+    resource_name: Method
+  PutMethodResponse:
+    operation_type:
+      - Create
+    resource_name: ApiMethodResponse
+  DeleteMethodResponse:
+    operation_type:
+      - Delete
+    resource_name: ApiMethodResponse
+  UpdateMethodResponse:
+    operation_type:
+      - Update
+    resource_name: ApiMethodResponse
+  GetMethodResponse:
+    operation_type:
+      - READ_ONE
+    resource_name: ApiMethodResponse
+  PutIntegrationResponse:
+    operation_type:
+      - Create
+    resource_name: ApiIntegrationResponse
+  DeleteIntegrationResponse:
+    operation_type:
+      - Delete
+    resource_name: ApiIntegrationResponse
+  UpdateIntegrationResponse:
+    operation_type:
+      - Update
+    resource_name: ApiIntegrationResponse
+  GetIntegrationResponse:
+    operation_type:
+      - READ_ONE
+    resource_name: ApiIntegrationResponse
 ignore:
   resource_names:
     # - ApiKey
@@ -208,6 +244,92 @@ resources:
         - ConflictException
         - NotFoundException
         - InvalidParameter
+  Method:
+    fields:
+      ResourceID:
+        is_primary_key: true
+        references:
+          resource: Resource
+          path: Status.ID
+        is_immutable: true
+      RestAPIID:
+        references:
+          resource: RestAPI
+          path: Status.ID
+        is_required: true
+        is_immutable: true
+      HTTPMethod:
+        is_required: true
+        is_immutable: true
+      MethodIntegration.Type:
+        go_tag: json:"type,omitempty"
+    hooks:
+      sdk_update_post_build_request:
+        template_path: hooks/method/sdk_update_post_build_request.go.tpl
+    exceptions:
+      terminal_codes:
+        - InvalidParameter
+    tags:
+      ignore: true
+  ApiMethodResponse:
+    fields:
+      ResourceID:
+        references:
+          resource: Resource
+          path: Status.ID
+        is_required: true
+        is_immutable: true
+        is_primary_key: true
+      RestAPIID:
+        references:
+          resource: RestAPI
+          path: Status.ID
+        is_required: true
+        is_immutable: true
+      HTTPMethod:
+        is_required: true
+        is_immutable: true
+      StatusCode:
+        is_required: true
+        is_immutable: true
+    tags:
+      ignore: true
+    hooks:
+      sdk_update_post_build_request:
+        template_path: hooks/api_method_response/sdk_update_post_build_request.go.tpl
+    exceptions:
+      terminal_codes:
+        - BadRequestException
+        - InvalidParameter
+  ApiIntegrationResponse:
+    fields:
+      ResourceID:
+        is_primary_key: true
+        references:
+          resource: Resource
+          path: Status.ID
+        is_immutable: true
+      RestAPIID:
+        references:
+          resource: RestAPI
+          path: Status.ID
+        is_required: true
+        is_immutable: true
+      HTTPMethod:
+        is_required: true
+        is_immutable: true
+      StatusCode:
+        is_required: true
+        is_immutable: true
+    tags:
+      ignore: true
+    hooks:
+      sdk_update_post_build_request:
+        template_path: hooks/integration_response/sdk_update_post_build_request.go.tpl
+    exceptions:
+      terminal_codes:
+        - BadRequestException
+        - InvalidParameter
   ApiKey:
     fields:
       ID:
@@ -221,8 +343,6 @@ resources:
     exceptions:
       terminal_codes:
         - BadRequestException
-        - ConflictException
-        - NotFoundException
         - InvalidParameter
     renames:
       operations:
@@ -236,8 +356,8 @@ resources:
           input_fields:
             ApiKey: Id
     hooks:
-      delta_pre_compare:
-        code: compareTags(delta, a, b)
+      sdk_update_pre_build_request:
+        template_path: hooks/api_key/sdk_update_pre_build_request.go.tpl
       sdk_update_post_build_request:
         template_path: hooks/api_key/sdk_update_post_build_request.go.tpl
       sdk_read_one_post_request:
@@ -246,5 +366,3 @@ resources:
         template_path: hooks/api_key/sdk_update_post_request.go.tpl
       sdk_update_post_request:
         template_path: hooks/api_key/sdk_update_post_request.go.tpl
-      sdk_read_one_post_set_output:
-        template_path: hooks/api_key/sdk_read_one_post_set_output.go.tpl
