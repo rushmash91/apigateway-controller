@@ -32,7 +32,7 @@ var (
 // that require an API key. API keys can be mapped to any Stage on any RestApi,
 // which indicates that the callers with the API key can make requests to that
 // stage.
-type APIKey struct {
+type APIKey_SDK struct {
 	CreatedDate     *metav1.Time       `json:"createdDate,omitempty"`
 	CustomerID      *string            `json:"customerID,omitempty"`
 	Description     *string            `json:"description,omitempty"`

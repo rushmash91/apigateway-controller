@@ -73,6 +73,7 @@ rules:
   - apigateway.services.k8s.aws
   resources:
   - apiintegrationresponses
+  - apikeys
   - apimethodresponses
   - integrations
   - methods
@@ -92,6 +93,7 @@ rules:
   - apigateway.services.k8s.aws
   resources:
   - apiintegrationresponses/status
+  - apikeys/status
   - apimethodresponses/status
   - integrations/status
   - methods/status

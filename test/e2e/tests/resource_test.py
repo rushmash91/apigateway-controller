@@ -64,7 +64,6 @@ def simple_resource(simple_rest_api, apigateway_client) -> Tuple[k8s.CustomResou
     k8s.create_custom_resource(ref, resource_data)
     cr = k8s.wait_resource_consumed_by_controller(ref, wait_periods=30)
 
-
     assert cr is not None
     assert cr['status']['id'] is not None
     assert k8s.get_resource_exists(ref)
@@ -83,7 +82,8 @@ def simple_resource(simple_rest_api, apigateway_client) -> Tuple[k8s.CustomResou
 
     _, deleted = k8s.delete_custom_resource(ref, 10, 60)
     assert deleted
-    wait_until_deleted(partial(apigateway_client.get_resource, **resource_query))
+    wait_until_deleted(
+        partial(apigateway_client.get_resource, **resource_query))
 
 
 @service_marker
@@ -91,7 +91,8 @@ def simple_resource(simple_rest_api, apigateway_client) -> Tuple[k8s.CustomResou
 class TestResource:
     def test_create_update_resource(self, simple_resource, apigateway_client):
         (ref, cr, _, resource_query) = simple_resource
-        assert safe_get(partial(apigateway_client.get_resource, **resource_query)) is not None
+        assert safe_get(partial(apigateway_client.get_resource,
+                        **resource_query)) is not None
 
         updates = {
             'spec': {
