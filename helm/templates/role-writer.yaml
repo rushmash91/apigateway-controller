@@ -12,6 +12,7 @@ rules:
   - apiintegrationresponses
   - apikeys
   - apimethodresponses
+  - authorizers
   - deployments
   - integrations
   - methods
@@ -33,6 +34,7 @@ rules:
   - apiintegrationresponses
   - apikeys
   - apimethodresponses
+  - authorizers
   - deployments
   - integrations
   - methods

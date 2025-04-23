@@ -12,6 +12,7 @@ rules:
   - apiintegrationresponses
   - apikeys
   - apimethodresponses
+  - authorizers
   - deployments
   - integrations
   - methods

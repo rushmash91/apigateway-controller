@@ -94,6 +94,18 @@ func (p *Set) Remove(path string) {
 	})
 }
 
+// RemoveWithValue adds a patch operation to this set for removing a specific value
+// from a list identified by the path.
+// This generates op=remove, path=<path>, value=<valueToRemove>.
+// Useful for APIs like API Gateway UpdateAuthorizer for providerARNs.
+func (p *Set) RemoveWithValue(path string, valueToRemove *string) {
+	p.patchOps = append(p.patchOps, &apigatewaytypes.PatchOperation{
+		Op:    apigatewaytypes.OpRemove,
+		Path:  aws.String(path),
+		Value: valueToRemove,
+	})
+}
+
 // GetPatchOperations returns the patch operations applied to this set.
 func (p *Set) GetPatchOperations() []apigatewaytypes.PatchOperation {
 	var patchOps []apigatewaytypes.PatchOperation
