@@ -75,6 +75,7 @@ rules:
   - apiintegrationresponses
   - apikeys
   - apimethodresponses
+  - deployments
   - integrations
   - methods
   - resources
@@ -95,6 +96,7 @@ rules:
   - apiintegrationresponses/status
   - apikeys/status
   - apimethodresponses/status
+  - deployments/status
   - integrations/status
   - methods/status
   - resources/status

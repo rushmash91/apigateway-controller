@@ -1,0 +1,9 @@
+apiVersion: apigateway.services.k8s.aws/v1alpha1
+kind: Deployment
+metadata:
+  name: $DEPLOYMENT_NAME
+spec:
+  restAPIRef:
+    from:
+      name: $REST_API_REF_NAME
+  description: "Test deployment"

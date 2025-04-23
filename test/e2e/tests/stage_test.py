@@ -46,7 +46,7 @@ def apigateway_client():
 @pytest.fixture(scope='module')
 def simple_stage(simple_integration, apigateway_client) -> Tuple[k8s.CustomResourceReference, Dict, str]:
     stage_name = random_suffix_name('simple-stage', 32)
-    (ref, cr, resource_query) = simple_integration
+    (ref, cr, resource_query, _) = simple_integration
     rest_api_id = resource_query['restApiId']
     deployment_res = apigateway_client.create_deployment(restApiId=rest_api_id, description=stage_name)
 

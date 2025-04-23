@@ -46,7 +46,7 @@ def simple_api_integration_response(simple_integration, apigateway_client) -> Tu
     api_integration_response_name = random_suffix_name(
         'integration-response', 32)
 
-    (int_ref, int_cr, resource_query) = simple_integration
+    (int_ref, int_cr, resource_query, _) = simple_integration
     rest_api_id = resource_query['restApiId']
     resource_id = resource_query['resourceId']
     http_method = resource_query['httpMethod']
