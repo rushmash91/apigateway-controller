@@ -98,20 +98,21 @@ type ClientCertificate struct {
 	Tags                  map[string]*string `json:"tags,omitempty"`
 }
 
-// An immutable representation of a RestApi resource that can be called by users
-// using Stages. A deployment must be associated with a Stage for it to be callable
-// over the Internet.
-type Deployment struct {
-	CreatedDate *metav1.Time `json:"createdDate,omitempty"`
-	Description *string      `json:"description,omitempty"`
-	ID          *string      `json:"id,omitempty"`
-}
-
 // The input configuration for a canary deployment.
 type DeploymentCanarySettings struct {
 	PercentTraffic         *float64           `json:"percentTraffic,omitempty"`
 	StageVariableOverrides map[string]*string `json:"stageVariableOverrides,omitempty"`
 	UseStageCache          *bool              `json:"useStageCache,omitempty"`
+}
+
+// An immutable representation of a RestApi resource that can be called by users
+// using Stages. A deployment must be associated with a Stage for it to be callable
+// over the Internet.
+type Deployment_SDK struct {
+	APISummary  map[string]map[string]*MethodSnapshot `json:"apiSummary,omitempty"`
+	CreatedDate *metav1.Time                          `json:"createdDate,omitempty"`
+	Description *string                               `json:"description,omitempty"`
+	ID          *string                               `json:"id,omitempty"`
 }
 
 // A documentation part for a targeted API entity.

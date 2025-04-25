@@ -40,7 +40,7 @@ def apigateway_client():
     return boto3.client(SERVICE_NAME)
 
 
-@pytest.fixture
+@pytest.fixture(scope='module')
 def custom_method_with_patch(simple_resource, apigateway_client) -> Tuple[k8s.CustomResourceReference, Dict, Dict]:
     method_name = random_suffix_name('patch-method', 32)
 

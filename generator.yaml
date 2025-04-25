@@ -46,7 +46,7 @@ ignore:
     # - ApiKey
     - Authorizer
     - BasePathMapping
-    - Deployment
+    # - Deployment
     - DocumentationPart
     - DocumentationVersion
     - DomainName
@@ -366,3 +366,32 @@ resources:
         template_path: hooks/api_key/sdk_update_post_request.go.tpl
       sdk_update_post_request:
         template_path: hooks/api_key/sdk_update_post_request.go.tpl
+  Deployment:
+    fields:
+      ID:
+        is_primary_key: true
+      RestAPIID:
+        references:
+          resource: RestAPI
+          path: Status.ID
+        is_required: true
+        is_immutable: true
+    renames:
+      operations:
+        GetDeployment:
+          input_fields:
+            DeploymentId: Id
+        UpdateDeployment:
+          input_fields:
+            DeploymentId: Id
+        DeleteDeployment:
+          input_fields:
+            DeploymentId: Id
+    hooks:
+      sdk_update_post_build_request:
+        template_path: hooks/deployment/sdk_update_post_build_request.go.tpl
+    exceptions:
+      terminal_codes:
+        - BadRequestException
+    tags:
+      ignore: true

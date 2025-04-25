@@ -69,7 +69,7 @@ def simple_integration(simple_resource, apigateway_client) -> Tuple[k8s.CustomRe
     assert cr is not None
     assert k8s.get_resource_exists(ref)
 
-    yield ref, cr, resource_query
+    yield ref, cr, resource_query, rest_api_cr
 
     _, deleted = k8s.delete_custom_resource(ref, 10, 30)
     assert deleted
@@ -81,7 +81,7 @@ def simple_integration(simple_resource, apigateway_client) -> Tuple[k8s.CustomRe
 @pytest.mark.canary
 class TestIntegration:
     def test_create_update_integration(self, simple_integration, apigateway_client):
-        (ref, cr, resource_query) = simple_integration
+        (ref, cr, resource_query, _) = simple_integration
         get_integration = partial(apigateway_client.get_integration, **resource_query)
 
         assert safe_get(get_integration) is not None
