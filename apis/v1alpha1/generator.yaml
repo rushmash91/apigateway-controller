@@ -44,7 +44,7 @@ operations:
 ignore:
   resource_names:
     # - ApiKey
-    - Authorizer
+    # - Authorizer
     - BasePathMapping
     # - Deployment
     - DocumentationPart
@@ -395,3 +395,35 @@ resources:
         - BadRequestException
     tags:
       ignore: true
+  Authorizer:
+    fields:
+      ID:
+        is_primary_key: true
+      RestAPIID:
+        references:
+          resource: RestAPI
+          path: Status.ID
+        is_required: true
+        is_immutable: true
+      Type:
+        go_tag: json:"type,omitempty"
+    renames:
+      operations:
+        GetAuthorizer:
+          input_fields:
+            AuthorizerId: Id
+        UpdateAuthorizer:
+          input_fields:
+            AuthorizerId: Id
+        DeleteAuthorizer:
+          input_fields:
+            AuthorizerId: Id
+    hooks:
+      sdk_update_post_build_request:
+        template_path: hooks/authorizer/sdk_update_post_build_request.go.tpl
+    tags:
+      ignore: true
+    exceptions:
+      terminal_codes:
+        - BadRequestException
+        - InvalidParameter

@@ -60,15 +60,21 @@ type AccessLogSettings struct {
 
 // Represents an authorization layer for methods. If enabled on a method, API
 // Gateway will activate the authorizer when a client calls the method.
-type Authorizer struct {
-	AuthType                     *string `json:"authType,omitempty"`
-	AuthorizerCredentials        *string `json:"authorizerCredentials,omitempty"`
-	AuthorizerResultTTLInSeconds *int64  `json:"authorizerResultTTLInSeconds,omitempty"`
-	AuthorizerURI                *string `json:"authorizerURI,omitempty"`
-	ID                           *string `json:"id,omitempty"`
-	IdentitySource               *string `json:"identitySource,omitempty"`
-	IdentityValidationExpression *string `json:"identityValidationExpression,omitempty"`
-	Name                         *string `json:"name,omitempty"`
+type Authorizer_SDK struct {
+	AuthType                     *string   `json:"authType,omitempty"`
+	AuthorizerCredentials        *string   `json:"authorizerCredentials,omitempty"`
+	AuthorizerResultTTLInSeconds *int64    `json:"authorizerResultTTLInSeconds,omitempty"`
+	AuthorizerURI                *string   `json:"authorizerURI,omitempty"`
+	ID                           *string   `json:"id,omitempty"`
+	IdentitySource               *string   `json:"identitySource,omitempty"`
+	IdentityValidationExpression *string   `json:"identityValidationExpression,omitempty"`
+	Name                         *string   `json:"name,omitempty"`
+	ProviderARNs                 []*string `json:"providerARNs,omitempty"`
+	// The authorizer type. Valid values are TOKEN for a Lambda function using a
+	// single authorization token submitted in a custom header, REQUEST for a Lambda
+	// function using incoming request parameters, and COGNITO_USER_POOLS for using
+	// an Amazon Cognito user pool.
+	Type *string `json:"type_,omitempty"`
 }
 
 // Represents the base path that callers of the API must provide as part of

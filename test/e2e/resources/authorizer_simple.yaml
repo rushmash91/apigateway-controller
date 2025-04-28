@@ -1,0 +1,11 @@
+apiVersion: apigateway.services.k8s.aws/v1alpha1
+kind: Authorizer
+metadata:
+  name: $AUTHORIZER_NAME
+spec:
+  restAPIID: $REST_API_ID
+  name: $AUTHORIZER_NAME
+  type: COGNITO_USER_POOLS
+  identitySource: method.request.header.Authorization
+  providerARNs:
+    - "$USER_POOL_ARN_1"

@@ -30,7 +30,7 @@ func TestPatchOperations(t *testing.T) {
 					"k1": aws.String("v1"),
 					"k3": aws.String("v3"),
 				}, false)
-				patchSet.Remove("/removed")
+				patchSet.Remove("/removed", nil)
 			},
 			expectedPatchOps: []apigatewaytypes.PatchOperation{
 				{
@@ -84,7 +84,7 @@ func TestPatchOperations(t *testing.T) {
 					"k1~":  aws.String("v1~/"),
 					"k3~/": aws.String("v3~/"),
 				}, false)
-				patchSet.Remove("/removed")
+				patchSet.Remove("/removed", nil)
 			},
 			expectedPatchOps: []apigatewaytypes.PatchOperation{
 				{
@@ -138,7 +138,7 @@ func TestPatchOperations(t *testing.T) {
 					"k1": aws.String("v1"),
 					"k3": aws.String("v3"),
 				}, true)
-				patchSet.Remove("/removed")
+				patchSet.Remove("/removed", nil)
 			},
 			expectedPatchOps: []apigatewaytypes.PatchOperation{
 				{

@@ -78,7 +78,7 @@ func updateCanarySettings(delta *compare.Delta, desiredSpec, latestSpec svcapity
 	const rootKey = "/canarySettings"
 	canary := desiredSpec.CanarySettings
 	if canary == nil {
-		patchSet.Remove(rootKey)
+		patchSet.Remove(rootKey, nil)
 		return
 	}
 
