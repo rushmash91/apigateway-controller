@@ -19,11 +19,14 @@ from dataclasses import dataclass
 from acktest.bootstrapping import Resources
 from e2e import bootstrap_directory
 from acktest.bootstrapping.elbv2 import NetworkLoadBalancer
+from acktest.bootstrapping.cognito_identity import UserPool
 
 
 @dataclass
 class BootstrapResources(Resources):
     NetworkLoadBalancer: NetworkLoadBalancer
+    AuthorizerUserPool1: UserPool
+    AuthorizerUserPool2: UserPool
 
 _bootstrap_resources = None
 

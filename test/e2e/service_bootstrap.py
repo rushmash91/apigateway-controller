@@ -4,7 +4,7 @@
 # not use this file except in compliance with the License. A copy of the
 # License is located at
 #
-#	 http://aws.amazon.com/apache2.0/
+# http://aws.amazon.com/apache2.0/
 #
 # or in the "license" file accompanying this file. This file is distributed
 # on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
@@ -13,19 +13,27 @@
 """Bootstraps the resources required to run the API Gateway integration tests.
 """
 import logging
+import os
 
 from acktest.bootstrapping import Resources, BootstrapFailureException
 
 from e2e import bootstrap_directory
 from e2e.bootstrap_resources import BootstrapResources
 from acktest.bootstrapping.elbv2 import NetworkLoadBalancer
+from acktest.bootstrapping.cognito_identity import UserPool
 
 
 def service_bootstrap() -> Resources:
     logging.getLogger().setLevel(logging.INFO)
 
+    user_pool_1 = UserPool(name_prefix="ack-apigw-auth-pool-1")
+    user_pool_2 = UserPool(name_prefix="ack-apigw-auth-pool-2")
+
     resources = BootstrapResources(
-        NetworkLoadBalancer=NetworkLoadBalancer(name_prefix='vpc-link-test', scheme='internal')
+        NetworkLoadBalancer=NetworkLoadBalancer(
+            name_prefix='vpc-link-test', scheme='internal'),
+        AuthorizerUserPool1=user_pool_1,
+        AuthorizerUserPool2=user_pool_2,
     )
 
     try:
@@ -34,6 +42,7 @@ def service_bootstrap() -> Resources:
         exit(254)
 
     return resources
+
 
 if __name__ == "__main__":
     config = service_bootstrap()

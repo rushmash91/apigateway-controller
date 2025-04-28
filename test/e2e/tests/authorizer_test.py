@@ -22,6 +22,7 @@ from functools import partial
 
 from acktest.resources import random_suffix_name
 from acktest.k8s import resource as k8s
+from e2e.bootstrap_resources import get_bootstrap_resources
 from e2e import service_marker, CRD_GROUP, CRD_VERSION, load_apigateway_resource
 from e2e.replacement_values import REPLACEMENT_VALUES
 from .rest_api_test import simple_rest_api
@@ -32,24 +33,18 @@ DEFAULT_WAIT_SECS = 10
 
 
 @pytest.fixture(scope="function")
-def authorizer_test_resources(cognito_client, simple_rest_api):
+def authorizer_test_resources(simple_rest_api):
     _, rest_api_cr = simple_rest_api
     rest_api_id = rest_api_cr["status"].get("id")
     assert rest_api_id is not None
 
-    user_pool_name_1 = random_suffix_name("user-pool-1", 32)
-    user_pool_name_2 = random_suffix_name("user-pool-2", 32)
+    bootstrap_resources = get_bootstrap_resources()
+
+    user_pool_arn_1 = bootstrap_resources.AuthorizerUserPool1.user_pool_arn
+    user_pool_arn_2 = bootstrap_resources.AuthorizerUserPool2.user_pool_arn
+
     authorizer_name = random_suffix_name("authorizer", 32)
 
-    pool1_resp = cognito_client.create_user_pool(PoolName=user_pool_name_1)
-    user_pool_id_1 = pool1_resp['UserPool']['Id']
-    user_pool_arn_1 = pool1_resp['UserPool']['Arn']
-
-    pool2_resp = cognito_client.create_user_pool(PoolName=user_pool_name_2)
-    user_pool_id_2 = pool2_resp['UserPool']['Id']
-    user_pool_arn_2 = pool2_resp['UserPool']['Arn']
-
-    # Create Authorizer CR using prerequisites
     replacements_authorizer = REPLACEMENT_VALUES.copy()
     replacements_authorizer["AUTHORIZER_NAME"] = authorizer_name
     replacements_authorizer["REST_API_ID"] = rest_api_id
@@ -74,9 +69,6 @@ def authorizer_test_resources(cognito_client, simple_rest_api):
     _, deleted_auth = k8s.delete_custom_resource(
         authorizer_ref, wait_periods=3, period_length=DEFAULT_WAIT_SECS)
     assert deleted_auth
-
-    cognito_client.delete_user_pool(UserPoolId=user_pool_id_1)
-    cognito_client.delete_user_pool(UserPoolId=user_pool_id_2)
 
 
 @service_marker
