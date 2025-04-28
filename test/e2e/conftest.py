@@ -43,7 +43,3 @@ def k8s_client():
 @pytest.fixture(scope='module')
 def apigateway_client():
     return boto3.client('apigateway')
-
-@pytest.fixture(scope='module')
-def cognito_client():
-    return boto3.client('cognito-idp')

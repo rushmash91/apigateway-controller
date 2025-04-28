@@ -101,7 +101,7 @@ func updateProviderARNsPatches(
 	for arn := range latestSet {
 		if !desiredSet[arn] {
 			// Use RemoveWithValue to generate: op=remove, path=/providerARNs, value=arn
-			patchSet.RemoveWithValue("/providerARNs", aws.String(arn))
+			patchSet.Remove("/providerARNs", aws.String(arn))
 		}
 	}
 

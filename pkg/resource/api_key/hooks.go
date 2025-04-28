@@ -96,7 +96,7 @@ func updateStageKeyPatches(patchSet *patch.Set, latest, desired []*svcapitypes.S
 			key := fmt.Sprintf("%s/%s", *sk.RestAPIID, *sk.StageName)
 			if !desiredMap[key] {
 				encodedKey := strings.Replace(key, "/", "~1", -1)
-				patchSet.Remove(fmt.Sprintf("/stages/%s", encodedKey))
+				patchSet.Remove(fmt.Sprintf("/stages/%s", encodedKey), nil)
 			}
 		}
 	}

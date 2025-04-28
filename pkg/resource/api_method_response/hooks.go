@@ -36,7 +36,7 @@ func updateMethodResponseInput(desired, latest *resource, input *svcsdk.UpdateMe
 		// Handle boolean map patching
 		for k := range latestSpec.ResponseParameters {
 			if _, ok := desiredSpec.ResponseParameters[k]; !ok {
-				patchSet.Remove(fmt.Sprintf("/responseParameters/%s", patchKeyEncoder.Replace(k)))
+				patchSet.Remove(fmt.Sprintf("/responseParameters/%s", patchKeyEncoder.Replace(k)), nil)
 			}
 		}
 		for k, v := range desiredSpec.ResponseParameters {
